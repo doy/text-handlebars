@@ -23,6 +23,7 @@ is(
 
 # XXX I'm not sure what the safestring constructor should be called
 # it's effectively Handlebars::SafeString->new($str) in JS
+# maybe we can just use Text::Xslate's mark_raw directly
 is(
     $tx->render_string(
         '<h1>{{title}}</h1><p>{{{body}}}</p>',
