@@ -7,6 +7,7 @@ my $tx = Text::Xslate->new(syntax => 'Handlebars');
 
 # XXX I'm not sure how helpers should be registered in Perl
 # in JS, it's global which is crappy
+# Text::Xslate->new has a "function" parameter for registering helpers
 Handlebars->registerHelper(noop => sub {
     my ($context, $options) = @_;
     return $options->{fn}->($context);
