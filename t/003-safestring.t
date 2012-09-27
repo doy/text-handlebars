@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Test::More;
-use Text::Xslate;
+use Text::Xslate 'mark_raw';
 
 my $tx = Text::Xslate->new(syntax => 'Handlebars');
 
@@ -16,18 +16,15 @@ is(
 is(
     $tx->render_string(
         '<h1>{{title}}</h1><p>{{{body}}}</p>',
-        { title => 'All about <p> Tags', body => '<i>This is a post about &lt;p&gt; tags</i>' },
+        { title => 'All About <p> Tags', body => '<i>This is a post about &lt;p&gt; tags</i>' },
     ),
     '<h1>All About &lt;p&gt; Tags</h1><p><i>This is a post about &lt;p&gt; tags</i></p>',
 );
 
-# XXX I'm not sure what the safestring constructor should be called
-# it's effectively Handlebars::SafeString->new($str) in JS
-# maybe we can just use Text::Xslate's mark_raw directly
 is(
     $tx->render_string(
         '<h1>{{title}}</h1><p>{{{body}}}</p>',
-        { title => Handlebars::SafeString->new('All about &lt;p&gt; Tags'), body => '<i>This is a post about &lt;p&gt; tags</i>' },
+        { title => mark_raw('All About &lt;p&gt; Tags'), body => '<i>This is a post about &lt;p&gt; tags</i>' },
     ),
     '<h1>All About &lt;p&gt; Tags</h1><p><i>This is a post about &lt;p&gt; tags</i></p>',
 );

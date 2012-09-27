@@ -107,7 +107,7 @@ sub preprocess {
             $code .= qq{$content;\n};
         }
         elsif ($type eq 'raw_code') {
-            $code .= qq{& $content;\n};
+            $code .= qq{mark_raw $content;\n};
         }
         else {
             $self->_error("Oops: Unknown token: $content ($type)");
@@ -123,11 +123,56 @@ sub preprocess {
 sub init_symbols {
     my $self = shift;
 
+    my $name = $self->symbol('(name)');
+    $name->set_led($self->can('led_name'));
+    $name->lbp(1);
+
+    $self->infix('.', 256, $self->can('led_dot'));
+    $self->infix('/', 256, $self->can('led_dot'));
 }
 
 sub nud_name {
     my $self = shift;
-    return $self->nud_variable(@_);
+    my ($symbol) = @_;
+
+    if ($symbol->is_defined) {
+        return $self->SUPER::nud_name(@_);
+    }
+    else {
+        return $self->nud_variable(@_);
+    }
+}
+
+sub led_name {
+    my $self = shift;
+    my ($symbol, $left) = @_;
+
+    if ($left->arity eq 'name') {
+        return $self->call($left, $symbol->nud($self));
+    }
+    else {
+        ...
+    }
+}
+
+sub led_dot {
+    my $self = shift;
+    my ($symbol, $left) = @_;
+
+    my $token = $self->token;
+    if (!$self->is_valid_field($token)) {
+        $self->_unexpected("a field name", $token);
+    }
+
+    my $dot = $symbol->clone(
+        arity  => 'field',
+        first  => $left,
+        second => $token->clone(arity => 'literal'),
+    );
+
+    $self->advance;
+
+    return $dot;
 }
 
 __PACKAGE__->meta->make_immutable;
