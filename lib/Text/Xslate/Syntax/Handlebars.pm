@@ -175,6 +175,39 @@ sub led_dot {
     return $dot;
 }
 
+if (0) {
+    require Devel::STDERR::Indent;
+    my @stack;
+    for my $method (qw(statements statement expression_list expression)) {
+        before $method => sub {
+            warn "entering $method";
+            push @stack, Devel::STDERR::Indent::indent();
+        };
+        after $method => sub {
+            pop @stack;
+            warn "leaving $method";
+        };
+    }
+    after advance => sub {
+        my $self = shift;
+        warn $self->token->id;
+    };
+    around parse => sub {
+        my $orig = shift;
+        my $self = shift;
+        my $ast = $self->$orig(@_);
+        use Data::Dump; ddx($ast);
+        return $ast;
+    };
+    around preprocess => sub {
+        my $orig = shift;
+        my $self = shift;
+        my $code = $self->$orig(@_);
+        warn $code;
+        return $code;
+    };
+}
+
 __PACKAGE__->meta->make_immutable;
 no Any::Moose;
 
