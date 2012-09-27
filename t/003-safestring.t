@@ -31,3 +31,5 @@ is(
     ),
     '<h1>All About &lt;p&gt; Tags</h1><p><i>This is a post about &lt;p&gt; tags</i></p>',
 );
+
+done_testing;

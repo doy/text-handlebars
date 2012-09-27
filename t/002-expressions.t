@@ -28,3 +28,5 @@ is(
     ),
     '<h1>Deprecated syntax does not</h1>',
 );
+
+done_testing;

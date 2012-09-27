@@ -12,3 +12,5 @@ is(
     ),
     'Hello, Handlebars world!',
 );
+
+done_testing;
