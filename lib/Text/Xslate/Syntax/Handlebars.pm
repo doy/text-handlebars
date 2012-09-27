@@ -47,7 +47,7 @@ sub split_tags {
 
             if ($pos >= 0) {
                 my $code = substr $input, 0, $pos, '';
-                $input =~ s/\A\Q$tag_end//
+                $input =~ s/\A\Q$close_tag//
                     or die "Oops!";
 
                 push @chunks, [
