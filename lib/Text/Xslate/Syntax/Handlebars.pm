@@ -4,7 +4,7 @@ use Any::Moose;
 use Carp 'confess';
 use Text::Xslate::Util qw($STRING neat p);
 
-extends 'Text::Xslate::Syntax';
+extends 'Text::Xslate::Parser';
 
 sub _build_identity_pattern { qr/[A-Za-z_][A-Za-z0-9_]*/ }
 sub _build_comment_pattern  { qr/\![^;]*/                }
@@ -26,7 +26,7 @@ sub split_tags {
     # follwoing a newline, $tag_start, or end of the input
     my $lex_text = qr/\A ( [^\n]*? (?: \n | (?= \Q$tag_start\E ) | \z ) ) /xms;
 
-    my $lex_comment = $parser->comment_pattern;
+    my $lex_comment = $self->comment_pattern;
     my $lex_code    = qr/(?: $lex_comment | (?: $STRING | [^'"] ) )/xms;
 
     my @chunks;
@@ -46,7 +46,7 @@ sub split_tags {
             }
 
             if ($pos >= 0) {
-                my $code = substr $_, 0, $pos, '';
+                my $code = substr $input, 0, $pos, '';
                 $input =~ s/\A\Q$tag_end//
                     or die "Oops!";
 
@@ -110,22 +110,24 @@ sub preprocess {
             $code .= qq{& $content;\n};
         }
         else {
-            $parser->_error("Oops: Unknown token: $s ($type)");
+            $self->_error("Oops: Unknown token: $content ($type)");
         }
     }
 
     return $code;
 }
 
-sub tokenize {
-}
-
 # XXX advance has some syntax special cases in it, probably need to override
 # it too eventually
-# sub advance {
-# }
 
 sub init_symbols {
+    my $self = shift;
+
+}
+
+sub nud_name {
+    my $self = shift;
+    return $self->nud_variable(@_);
 }
 
 __PACKAGE__->meta->make_immutable;
