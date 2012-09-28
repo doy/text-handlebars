@@ -159,20 +159,28 @@ sub led_dot {
     my $self = shift;
     my ($symbol, $left) = @_;
 
-    my $token = $self->token;
-    if (!$self->is_valid_field($token)) {
-        $self->_unexpected("a field name", $token);
-    }
-
-    my $dot = $symbol->clone(
-        arity  => 'field',
-        first  => $left,
-        second => $token->clone(arity => 'literal'),
-    );
+    my $dot = $self->make_field_lookup($left, $self->token, $symbol);
 
     $self->advance;
 
     return $dot;
+}
+
+sub make_field_lookup {
+    my $self = shift;
+    my ($var, $field, $dot) = @_;
+
+    if (!$self->is_valid_field($field)) {
+        $self->_unexpected("a field name", $field);
+    }
+
+    $dot ||= $self->symbol('.');
+
+    return $dot->clone(
+        arity  => 'field',
+        first  => $var,
+        second => $field->clone(arity => 'literal'),
+    );
 }
 
 if (0) {
