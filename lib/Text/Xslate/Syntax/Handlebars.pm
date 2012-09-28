@@ -127,8 +127,17 @@ sub init_symbols {
     $name->set_led($self->can('led_name'));
     $name->lbp(1);
 
+    my $for = $self->symbol('(for)');
+    $for->arity('for');
+
+    my $iterator = $self->symbol('(iterator)');
+    $iterator->arity('iterator');
+
     $self->infix('.', 256, $self->can('led_dot'));
     $self->infix('/', 256, $self->can('led_dot'));
+
+    $self->symbol('#')->set_std($self->can('std_block'));
+    $self->prefix('/', 0)->is_block_end(1);
 }
 
 sub nud_name {
@@ -166,6 +175,73 @@ sub led_dot {
     return $dot;
 }
 
+sub std_block {
+    my $self = shift;
+    my ($symbol) = @_;
+
+    if ($self->token->arity ne 'name') {
+        $self->_unexpected("block name", $self->token);
+    }
+    my $name = $self->token->nud($self);
+    $self->advance;
+    $self->advance(';');
+
+    my $body = $self->statements;
+
+    $self->advance('/');
+
+    if ($self->token->arity ne 'name') {
+        $self->_unexpected("block name", $self->token);
+    }
+    if ($self->token->id ne $name->id) {
+        $self->_unexpected('/' . $name->id, $self->token);
+    }
+
+    $self->advance;
+
+    my $iterations = $self->make_ternary(
+        $self->call('(is_array)', $name->clone),
+        $name->clone,
+        $self->make_ternary(
+            $name->clone,
+            $self->call(
+                '(make_array)',
+                $self->symbol('(literal)')->clone(id => 1),
+            ),
+            $self->call(
+                '(make_array)',
+                $self->symbol('(literal)')->clone(id => 0),
+            ),
+        ),
+    );
+
+    my $loop_var = $self->symbol('(variable)')->clone(id => '(block)');
+
+    my $body_block = [
+        $symbol->clone(
+            arity  => 'block',
+            first  => [
+                $self->call(
+                    '(new_vars_for)',
+                    $self->symbol('(vars)')->clone(arity => 'vars'),
+                    $name->clone,
+                    $self->symbol('(iterator)')->clone(
+                        id    => '$~(block)',
+                        first => $loop_var,
+                    ),
+                ),
+            ],
+            second => $body,
+        ),
+    ];
+
+    return $self->symbol('(for)')->clone(
+        first  => $iterations,
+        second => [$loop_var],
+        third  => $body_block,
+    );
+}
+
 sub make_field_lookup {
     my $self = shift;
     my ($var, $field, $dot) = @_;
@@ -180,6 +256,17 @@ sub make_field_lookup {
         arity  => 'field',
         first  => $var,
         second => $field->clone(arity => 'literal'),
+    );
+}
+
+sub make_ternary {
+    my $self = shift;
+    my ($if, $then, $else) = @_;
+    return $self->symbol('?:')->clone(
+        arity  => 'if',
+        first  => $if,
+        second => $then,
+        third  => $else,
     );
 }
 

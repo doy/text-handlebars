@@ -1,9 +1,12 @@
+#!/usr/bin/env perl
 use strict;
 use warnings;
 use Test::More;
+
+use Text::Handlebars;
 use Text::Xslate 'mark_raw';
 
-my $tx = Text::Xslate->new(syntax => 'Handlebars');
+my $tx = Text::Handlebars->new;
 
 is(
     $tx->render_string(
