@@ -3,6 +3,8 @@ use warnings;
 use Test::More;
 use Text::Xslate;
 
+plan skip_all => "unimplemented";
+
 my $tx = Text::Xslate->new(syntax => 'Handlebars');
 
 # XXX I'm not sure how helpers should be registered in Perl

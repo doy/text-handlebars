@@ -88,6 +88,7 @@ RENDERED
     "section with non-empty list"
 );
 
+{ local $TODO = "unimplemented"; local $SIG{__WARN__} = sub { };
 render_ok(
     <<'TEMPLATE',
 {{#wrapped}}
@@ -110,6 +111,7 @@ TEMPLATE
 RENDERED
     "lambdas"
 );
+}
 
 render_ok(
     <<'TEMPLATE',
@@ -156,6 +158,7 @@ RENDERED
     "comments"
 );
 
+{ local $TODO = "unimplemented";
 render_file_ok(
     { path => ['t/mustache/partials'] },
     'base.mustache',
@@ -195,6 +198,7 @@ TEMPLATE
 RENDERED
     "set delimiter"
 );
+}
 
 sub render_ok {
     local $Test::Builder::Level = $Test::Builder::Level + 1;
@@ -215,9 +219,11 @@ sub _render_ok {
     my $tx = Text::Handlebars->new(%$opts);
 
     my $exception = exception {
+        local $Test::Builder::Level = $Test::Builder::Level + 5;
         is($tx->$render_method($template, $env), $expected, $desc);
     };
     fail("$desc (threw an exception)") if $exception;
+    local $TODO = undef unless $exception;
     is(
         $exception,
         undef,
