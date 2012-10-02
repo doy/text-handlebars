@@ -146,6 +146,8 @@ sub init_symbols {
     $self->symbol('#')->set_std($self->can('std_block'));
     $self->symbol('^')->set_std($self->can('std_block'));
     $self->prefix('/', 0)->is_block_end(1);
+
+    $self->prefix('&', 0)->set_nud($self->can('nud_mark_raw'));
 }
 
 sub nud_name {
@@ -279,6 +281,13 @@ sub std_block {
         second => [$loop_var],
         third  => $body_block,
     );
+}
+
+sub nud_mark_raw {
+    my $self = shift;
+    my ($symbol) = @_;
+
+    return $self->call('mark_raw', $self->expression(0));
 }
 
 sub make_field_lookup {
