@@ -97,14 +97,21 @@ sub preprocess {
     my @chunks = $self->split_tags($input);
 
     my $code = '';
+    my $suppress_newline;
     for my $chunk (@chunks) {
         my ($type, $content) = @$chunk;
         if ($type eq 'text') {
             $content =~ s/(["\\])/\\$1/g;
-            $code .= qq{print_raw "$content";\n};
+            $content =~ s/^\n//
+                if $suppress_newline;
+            $code .= qq{print_raw "$content";\n}
+                if length($content);
+            $suppress_newline = 0;
         }
         elsif ($type eq 'code') {
             $code .= qq{$content;\n};
+            $suppress_newline = 1
+                if $content =~ m{^[#/]};
         }
         elsif ($type eq 'raw_code') {
             $code .= qq{mark_raw $content;\n};
