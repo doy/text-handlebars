@@ -1,10 +1,9 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
+use lib 't/lib';
 use Test::More;
-use Test::Fatal;
-
-use Text::Handlebars;
+use Test::Handlebars;
 
 # from the mustache(5) man page
 # http://mustache.github.com/mustache.5.html
@@ -198,37 +197,6 @@ TEMPLATE
 RENDERED
     "set delimiter"
 );
-}
-
-sub render_ok {
-    local $Test::Builder::Level = $Test::Builder::Level + 1;
-    return _render_ok('render_string', @_);
-}
-
-sub render_file_ok {
-    local $Test::Builder::Level = $Test::Builder::Level + 1;
-    return _render_ok('render', @_);
-}
-
-sub _render_ok {
-    my $render_method = shift;
-    my $opts = ref($_[0]) && ref($_[0]) eq 'HASH' ? shift : {};
-    my ($template, $env, $expected, $desc) = @_;
-    local $Test::Builder::Level = $Test::Builder::Level + 1;
-
-    my $tx = Text::Handlebars->new(%$opts);
-
-    my $exception = exception {
-        local $Test::Builder::Level = $Test::Builder::Level + 5;
-        is($tx->$render_method($template, $env), $expected, $desc);
-    };
-    fail("$desc (threw an exception)") if $exception;
-    local $TODO = undef unless $exception;
-    is(
-        $exception,
-        undef,
-        "no exceptions for $desc"
-    );
 }
 
 done_testing;

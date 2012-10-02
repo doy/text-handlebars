@@ -1,57 +1,50 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
+use lib 't/lib';
 use Test::More;
+use Test::Handlebars;
 
-use Text::Handlebars;
-
-my $tx = Text::Handlebars->new;
-
-is(
-    $tx->render_string(
-        'This is {{#shown}}shown{{/shown}}',
-        { shown => 1 },
-    ),
+render_ok(
+    'This is {{#shown}}shown{{/shown}}',
+    { shown => 1 },
     'This is shown',
+    "true block variable"
 );
 
-is(
-    $tx->render_string(
-        'This is {{#shown}}shown{{/shown}}',
-        { shown => 0 },
-    ),
+render_ok(
+    'This is {{#shown}}shown{{/shown}}',
+    { shown => 0 },
     'This is ',
+    "false block variable"
 );
 
-is(
-    $tx->render_string(
-        'This is {{#shown}}shown{{/shown}}',
-        { shown => [({}) x 3] },
-    ),
+render_ok(
+    'This is {{#shown}}shown{{/shown}}',
+    { shown => [({}) x 3] },
     'This is shownshownshown',
+    "array block variable"
 );
 
-is(
-    $tx->render_string(
-        'This is {{#shown}}{{content}}{{/shown}}',
-        { shown => { content => 'SHOWN' } },
-    ),
+render_ok(
+    'This is {{#shown}}{{content}}{{/shown}}',
+    { shown => { content => 'SHOWN' } },
     'This is SHOWN',
+    "nested hash block variable"
 );
 
-is(
-    $tx->render_string(
-        'This is {{#shown}}{{content}}{{/shown}}',
-        {
-            shown => [
-                { content => '3' },
-                { content => '2' },
-                { content => '1' },
-                { content => 'Shown' },
-            ],
-        },
-    ),
+render_ok(
+    'This is {{#shown}}{{content}}{{/shown}}',
+    {
+        shown => [
+            { content => '3' },
+            { content => '2' },
+            { content => '1' },
+            { content => 'Shown' },
+        ],
+    },
     'This is 321Shown',
+    "nested array of hashes block variable"
 );
 
 done_testing;

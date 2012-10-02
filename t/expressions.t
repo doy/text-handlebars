@@ -1,34 +1,29 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
+use lib 't/lib';
 use Test::More;
+use Test::Handlebars;
 
-use Text::Handlebars;
-
-my $tx = Text::Handlebars->new;
-
-is(
-    $tx->render_string(
-        '<h1>{{title}}</h1>',
-        { title => 'Xslate rocks' },
-    ),
+render_ok(
+    '<h1>{{title}}</h1>',
+    { title => 'Xslate rocks' },
     '<h1>Xslate rocks</h1>',
+    "basic variables"
 );
 
-is(
-    $tx->render_string(
-        '<h1>{{article.title}}</h1>',
-        { article => { title => 'Hash references rock' } },
-    ),
+render_ok(
+    '<h1>{{article.title}}</h1>',
+    { article => { title => 'Hash references rock' } },
     '<h1>Hash references rock</h1>',
+    ". separator"
 );
 
-is(
-    $tx->render_string(
-        '<h1>{{article/title}}</h1>',
-        { article => { title => 'Deprecated syntax does not' } },
-    ),
+render_ok(
+    '<h1>{{article/title}}</h1>',
+    { article => { title => 'Deprecated syntax does not' } },
     '<h1>Deprecated syntax does not</h1>',
+    "/ separator"
 );
 
 done_testing;
