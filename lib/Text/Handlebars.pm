@@ -12,6 +12,10 @@ sub default_functions {
             my ($val) = @_;
             return ref($val) && ref($val) eq 'ARRAY';
         },
+        '(is_empty_array)' => sub {
+            my ($val) = @_;
+            return @$val == 0;
+        },
         '(make_array)' => sub {
             my ($length) = @_;
             return [(undef) x $length];

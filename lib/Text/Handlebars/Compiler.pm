@@ -11,10 +11,12 @@ sub _generate_block {
     my $self = shift;
     my ($node) = @_;
 
-    return (
-        $self->_localize_vars($node->first),
-        (map { $self->compile_ast($_) } @{ $node->second }),
-    );
+    my @compiled = map { $self->compile_ast($_) } @{ $node->second };
+
+    unshift @compiled, $self->_localize_vars($node->first)
+        if $node->first;
+
+    return @compiled;
 }
 
 if (0) {

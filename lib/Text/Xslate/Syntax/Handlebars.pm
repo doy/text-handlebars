@@ -111,7 +111,7 @@ sub preprocess {
         elsif ($type eq 'code') {
             $code .= qq{$content;\n};
             $suppress_newline = 1
-                if $content =~ m{^[#/]};
+                if $content =~ m{^[#^/]};
         }
         elsif ($type eq 'raw_code') {
             $code .= qq{mark_raw $content;\n};
@@ -144,6 +144,7 @@ sub init_symbols {
     $self->infix('/', 256, $self->can('led_dot'));
 
     $self->symbol('#')->set_std($self->can('std_block'));
+    $self->symbol('^')->set_std($self->can('std_block'));
     $self->prefix('/', 0)->is_block_end(1);
 }
 
@@ -186,6 +187,8 @@ sub std_block {
     my $self = shift;
     my ($symbol) = @_;
 
+    my $inverted = $symbol->id eq '^';
+
     if ($self->token->arity ne 'name') {
         $self->_unexpected("block name", $self->token);
     }
@@ -206,38 +209,67 @@ sub std_block {
 
     $self->advance;
 
-    my $iterations = $self->make_ternary(
-        $self->call('(is_array)', $name->clone),
-        $name->clone,
-        $self->make_ternary(
-            $name->clone,
-            $self->call(
-                '(make_array)',
-                $self->symbol('(literal)')->clone(id => 1),
-            ),
-            $self->call(
-                '(make_array)',
-                $self->symbol('(literal)')->clone(id => 0),
-            ),
-        ),
-    );
+    my $iterations = $inverted
+        ? ($self->make_ternary(
+              $self->call('(is_array)', $name->clone),
+              $self->make_ternary(
+                  $self->call('(is_empty_array)', $name->clone),
+                  $self->call(
+                      '(make_array)',
+                      $self->symbol('(literal)')->clone(id => 1),
+                  ),
+                  $self->call(
+                      '(make_array)',
+                      $self->symbol('(literal)')->clone(id => 0),
+                  ),
+              ),
+              $self->make_ternary(
+                  $name->clone,
+                  $self->call(
+                      '(make_array)',
+                      $self->symbol('(literal)')->clone(id => 0),
+                  ),
+                  $self->call(
+                      '(make_array)',
+                      $self->symbol('(literal)')->clone(id => 1),
+                  ),
+              ),
+           ))
+        : ($self->make_ternary(
+              $self->call('(is_array)', $name->clone),
+              $name->clone,
+              $self->make_ternary(
+                  $name->clone,
+                  $self->call(
+                      '(make_array)',
+                      $self->symbol('(literal)')->clone(id => 1),
+                  ),
+                  $self->call(
+                      '(make_array)',
+                      $self->symbol('(literal)')->clone(id => 0),
+                  ),
+              ),
+           ));
 
     my $loop_var = $self->symbol('(variable)')->clone(id => '(block)');
 
     my $body_block = [
         $symbol->clone(
-            arity  => 'block',
-            first  => [
-                $self->call(
-                    '(new_vars_for)',
-                    $self->symbol('(vars)')->clone(arity => 'vars'),
-                    $name->clone,
-                    $self->symbol('(iterator)')->clone(
-                        id    => '$~(block)',
-                        first => $loop_var,
-                    ),
-                ),
-            ],
+            arity => 'block',
+            first => ($inverted
+                ? (undef)
+                : ([
+                       $self->call(
+                           '(new_vars_for)',
+                           $self->symbol('(vars)')->clone(arity => 'vars'),
+                           $name->clone,
+                           $self->symbol('(iterator)')->clone(
+                               id    => '$~(block)',
+                               first => $loop_var,
+                           ),
+                       ),
+                   ])
+            ),
             second => $body,
         ),
     ];
