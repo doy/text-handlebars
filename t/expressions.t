@@ -26,4 +26,41 @@ render_ok(
     "/ separator"
 );
 
+{ local $TODO = "unimplemented";
+render_ok(
+    '{{#article}}<h1>{{title}}</h1> - {{../date}}{{/article}}',
+    { article => { title => 'Backtracking' }, date => '2012-10-01' },
+    '<h1>Backtracking</h1> - 2012-10-01',
+    "backtracking with ../"
+);
+
+render_ok(
+    <<'TEMPLATE',
+{{#page}}
+{{#article}}<h1>{{title}}</h1> - {{../../date}}{{/article}}
+{{/page}}
+TEMPLATE
+    {
+        page => {
+            article => { title => 'Multilevel Backtracking' },
+        },
+        date => '2012-10-01',
+    },
+    <<'RENDERED',
+<h1>Multilevel Backtracking</h1> - 2012-10-01
+RENDERED
+    "multilevel backtracking with ../"
+);
+
+render_ok(
+    '{{#article}}<h1>{{title}}</h1> - {{../metadata.date}}{{/article}}',
+    {
+        article  => { title => 'Backtracking' },
+        metadata => { date  => '2012-10-01' },
+    },
+    '<h1>Backtracking</h1> - 2012-10-01',
+    "backtracking into other hash variables with ../ and ."
+);
+}
+
 done_testing;
