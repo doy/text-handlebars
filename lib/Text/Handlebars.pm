@@ -4,6 +4,8 @@ use warnings;
 
 use base 'Text::Xslate';
 
+use Scalar::Util 'weaken';
+
 sub default_functions {
     my $class = shift;
     return {
@@ -35,7 +37,11 @@ sub default_functions {
                 die "invalid value: $value"
                     if !defined($ref) || $ref ne 'HASH';
 
-                return $value;
+                weaken(my $vars_copy = $vars);
+                return {
+                    %$value,
+                    '..' => $vars_copy,
+                };
             }
             else {
                 return $vars;

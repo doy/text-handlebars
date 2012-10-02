@@ -148,6 +148,7 @@ sub init_symbols {
     $self->prefix('/', 0)->is_block_end(1);
 
     $self->prefix('&', 0)->set_nud($self->can('nud_mark_raw'));
+    $self->prefix('..', 0)->set_nud($self->can('nud_uplevel'));
 }
 
 sub nud_name {
@@ -290,6 +291,13 @@ sub nud_mark_raw {
     return $self->call('mark_raw', $self->expression(0));
 }
 
+sub nud_uplevel {
+    my $self = shift;
+    my ($symbol) = @_;
+
+    return $symbol->clone(arity => 'variable');
+}
+
 sub make_field_lookup {
     my $self = shift;
     my ($var, $field, $dot) = @_;
@@ -305,6 +313,14 @@ sub make_field_lookup {
         first  => $var,
         second => $field->clone(arity => 'literal'),
     );
+}
+
+sub is_valid_field {
+    my $self = shift;
+    my ($field) = @_;
+
+    return 1 if $field->id eq '..';
+    return $self->SUPER::is_valid_field(@_);
 }
 
 sub make_ternary {

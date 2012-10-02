@@ -26,7 +26,18 @@ render_ok(
     "/ separator"
 );
 
-{ local $TODO = "unimplemented";
+render_ok(
+    '<h1>{{page.article.title}}</h1> - {{date}}',
+    {
+        page => {
+            article => { title => 'Multilevel field access' },
+        },
+        date => '2012-10-01',
+    },
+    '<h1>Multilevel field access</h1> - 2012-10-01',
+    "multilevel field access with ."
+);
+
 render_ok(
     '{{#article}}<h1>{{title}}</h1> - {{../date}}{{/article}}',
     { article => { title => 'Backtracking' }, date => '2012-10-01' },
@@ -34,6 +45,7 @@ render_ok(
     "backtracking with ../"
 );
 
+{ local $TODO = "autochomping issues";
 render_ok(
     <<'TEMPLATE',
 {{#page}}
@@ -51,6 +63,7 @@ TEMPLATE
 RENDERED
     "multilevel backtracking with ../"
 );
+}
 
 render_ok(
     '{{#article}}<h1>{{title}}</h1> - {{../metadata.date}}{{/article}}',
@@ -61,6 +74,5 @@ render_ok(
     '<h1>Backtracking</h1> - 2012-10-01',
     "backtracking into other hash variables with ../ and ."
 );
-}
 
 done_testing;
