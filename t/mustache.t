@@ -176,6 +176,7 @@ render_file_ok(
 EXPECTED
     "partials"
 );
+}
 
 render_ok(
     <<'TEMPLATE',
@@ -197,6 +198,5 @@ TEMPLATE
 RENDERED
     "set delimiter"
 );
-}
 
 done_testing;

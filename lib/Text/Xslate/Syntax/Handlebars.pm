@@ -24,10 +24,6 @@ sub split_tags {
     my $tag_start = $self->tag_start;
     my $tag_end   = $self->tag_end;
 
-    # 'text' is a something without newlines
-    # follwoing a newline, $tag_start, or end of the input
-    my $lex_text = qr/\A ( [^\n]*? (?: \n | (?= \Q$tag_start\E ) | \z ) ) /xms;
-
     my $lex_comment = $self->comment_pattern;
     my $lex_code    = qr/(?: $lex_comment | (?: $STRING | [^'"] ) )/xms;
 
@@ -53,7 +49,16 @@ sub split_tags {
                 $input =~ s/\A\Q$close_tag//
                     or die "Oops!";
 
-                if ($code =~ m{^[!#^/]} && $standalone) {
+                my $autochomp = $code =~ m{^[!#^/=]};
+
+                if ($code =~ s/^=\s*([^\s]+)\s+([^\s]+)\s*=$//) {
+                    ($tag_start, $tag_end) = ($1, $2);
+                }
+                elsif ($code =~ /^=/) {
+                    die "Invalid delimiter tag: $code";
+                }
+
+                if ($autochomp && $standalone) {
                     if ($input =~ /\A\s*(?:\n|\z)/) {
                         $input =~ s/\A$nl//;
                         if (@chunks > 0 && $chunks[-1][0] eq 'text') {
@@ -62,10 +67,12 @@ sub split_tags {
                     }
                 }
 
-                push @chunks, [
-                    ($close_tag eq '}}}' ? 'raw_code' : 'code'),
-                    $code
-                ];
+                if (length($code)) {
+                    push @chunks, [
+                        ($close_tag eq '}}}' ? 'raw_code' : 'code'),
+                        $code
+                    ];
+                }
 
                 undef $close_tag;
             }
@@ -81,7 +88,7 @@ sub split_tags {
                 $close_tag = $tag_end;
             }
         }
-        elsif ($input =~ s/\A$lex_text//) {
+        elsif ($input =~ s/\A([^\n]*?(?:\n|(?=\Q$tag_start\E)|\z))//) {
             my $text = $1;
             if (length($text)) {
                 push @chunks, [ text => $text ];
