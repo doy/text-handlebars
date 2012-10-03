@@ -214,25 +214,24 @@ sub std_block {
 
     my $inverted = $symbol->id eq '^';
 
-    if ($self->token->arity ne 'name') {
-        $self->_unexpected("block name", $self->token);
+    my $name = $self->expression(0);
+    if ($name->arity ne 'variable' && $name->arity ne 'field') {
+        $self->_unexpected("opening block name", $self->token);
     }
-    my $name = $self->token->nud($self);
-    $self->advance;
     $self->advance(';');
 
     my $body = $self->statements;
 
     $self->advance('/');
+    my $closing_name = $self->expression(0);
 
-    if ($self->token->arity ne 'name') {
-        $self->_unexpected("block name", $self->token);
+    if ($closing_name->arity ne 'variable' && $closing_name->arity ne 'field') {
+        $self->_unexpected("closing block name", $self->token);
     }
-    if ($self->token->id ne $name->id) {
+    if ($closing_name->id ne $name->id) { # XXX
         $self->_unexpected('/' . $name->id, $self->token);
     }
-
-    $self->advance;
+    $self->advance(';');
 
     my $iterations = $inverted
         ? ($self->make_ternary(
