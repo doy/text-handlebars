@@ -152,9 +152,8 @@ RENDERED
     "comments"
 );
 
-{ local $TODO = "unimplemented";
 render_file_ok(
-    { path => ['t/mustache/partials'] },
+    { path => ['t/mustache/partials'], suffix => '.mustache' },
     'base.mustache',
     {
         names => [
@@ -171,7 +170,6 @@ render_file_ok(
 EXPECTED
     "partials"
 );
-}
 
 render_ok(
     <<'TEMPLATE',

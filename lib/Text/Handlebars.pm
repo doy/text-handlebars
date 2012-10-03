@@ -81,7 +81,10 @@ sub _register_builtin_methods {
     };
     $funcs->{'(find_file)'} = sub {
         my ($filename) = @_;
-        return try { $weakself->find_file($filename); 1 } catch { undef };
+        return 1 if try { $weakself->find_file($filename); 1 };
+        $filename .= $weakself->{suffix};
+        return 1 if try { $weakself->find_file($filename); 1 };
+        return 0;
     };
 }
 

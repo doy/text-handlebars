@@ -3,6 +3,8 @@ use Any::Moose;
 
 extends 'Text::Xslate::Compiler';
 
+use Try::Tiny;
+
 has '+syntax' => (
     default => 'Handlebars',
 );
@@ -17,6 +19,16 @@ sub _generate_block {
         if $node->first;
 
     return @compiled;
+}
+
+sub _generate_include {
+    my $self = shift;
+    my ($node) = @_;
+
+    my $file = $node->first;
+    $file->id($file->id . $self->engine->{suffix})
+        unless try { $self->engine->find_file($file->id); 1 };
+    return $self->SUPER::_generate_include($node);
 }
 
 if (0) {
