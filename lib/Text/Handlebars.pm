@@ -39,6 +39,7 @@ sub default_functions {
 
                 weaken(my $vars_copy = $vars);
                 return {
+                    %$vars,
                     %$value,
                     '..' => $vars_copy,
                 };
