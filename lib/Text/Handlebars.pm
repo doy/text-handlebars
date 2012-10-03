@@ -5,6 +5,7 @@ use warnings;
 use base 'Text::Xslate';
 
 use Scalar::Util 'weaken';
+use Try::Tiny;
 
 sub default_functions {
     my $class = shift;
@@ -76,7 +77,11 @@ sub _register_builtin_methods {
         my $to_render = $code->(@args);
         $to_render = "{{= $open_tag $close_tag =}}$to_render"
             if defined($open_tag) && defined($close_tag) && $close_tag ne '}}';
-        return $self->render_string($to_render, $vars);
+        return $weakself->render_string($to_render, $vars);
+    };
+    $funcs->{'(find_file)'} = sub {
+        my ($filename) = @_;
+        return try { $weakself->find_file($filename); 1 } catch { undef };
     };
 }
 

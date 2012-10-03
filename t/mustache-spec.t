@@ -9,15 +9,16 @@ use Test::Requires 'JSON', 'Path::Class';
 
 for my $file (dir('t', 'mustache-spec', 'specs')->children) {
     next unless $file =~ /\.json$/;
-    next if $file->basename =~ /partials/;
     my $tests = decode_json($file->slurp);
     note("running " . $file->basename . " tests");
     for my $test (@{ $tests->{tests} }) {
         local $TODO = "unimplemented"
-            if $file->basename eq 'delimiters.json'
-            && $test->{name} =~ /partial/i;
+            if $file->basename eq 'partials.json'
+            && $test->{name} =~ /standalone/i
+            && $test->{name} !~ /line endings/i;
 
         render_ok(
+            ($test->{partials} ? ({ path => [$test->{partials}] }) : ()),
             $test->{template},
             fix_data($test->{data}),
             $test->{expected},

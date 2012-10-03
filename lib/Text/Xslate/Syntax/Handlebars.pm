@@ -68,7 +68,7 @@ sub split_tags {
                     push @delimiters, [$tag_start, $tag_end];
                 }
 
-                my $autochomp = $code =~ m{^[!#^/=]};
+                my $autochomp = $code =~ m{^[!#^/=>]};
 
                 if ($code =~ s/^=\s*([^\s]+)\s+([^\s]+)\s*=$//) {
                     ($tag_start, $tag_end) = ($1, $2);
@@ -80,10 +80,13 @@ sub split_tags {
                 if ($autochomp && $standalone) {
                     if ($input =~ /\A\s*(?:\n|\z)/) {
                         $input =~ s/\A$nl//;
-                        if (@chunks > 0 && $chunks[-1][0] eq 'text') {
+                        if (@chunks > 0 && $chunks[-1][0] eq 'text' && $code !~ m{^>}) {
                             $chunks[-1][1] =~ s/^(?:(?!\n)\s)*\z//m;
                         }
                     }
+                }
+                else {
+                    $standalone = 0;
                 }
 
                 if (length($code)) {
@@ -195,6 +198,8 @@ sub init_symbols {
     $self->symbol('#')->set_std($self->can('std_block'));
     $self->symbol('^')->set_std($self->can('std_block'));
     $self->prefix('/', 0)->is_block_end(1);
+
+    $self->symbol('>')->set_std($self->can('std_partial'));
 
     $self->prefix('&', 0)->set_nud($self->can('nud_mark_raw'));
     $self->prefix('..', 0)->set_nud($self->can('nud_uplevel'));
@@ -393,6 +398,27 @@ sub nud_uplevel {
     my ($symbol) = @_;
 
     return $symbol->clone(arity => 'variable');
+}
+
+sub std_partial {
+    my $self = shift;
+    my ($symbol) = @_;
+
+    my $partial = $self->token->clone(arity => 'literal');
+    $self->advance;
+
+    return $self->make_ternary(
+        $self->call('(find_file)', $partial->clone),
+        $symbol->clone(
+            arity => 'include',
+            id    => 'include',
+            first => $partial,
+        ),
+        $symbol->clone(
+            arity => 'literal',
+            id    => '',
+        ),
+    );
 }
 
 sub define_function {
