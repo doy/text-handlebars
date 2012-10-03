@@ -35,6 +35,8 @@ sub _render_ok {
     my $opts = ref($_[0]) && ref($_[0]) eq 'HASH' ? shift : {};
     my ($template, $env, $expected, $desc) = @_;
 
+    $opts->{cache} = 0;
+
     my $tx = Text::Handlebars->new(%$opts);
 
     my $exception = exception {
