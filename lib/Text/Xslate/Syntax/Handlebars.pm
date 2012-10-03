@@ -146,8 +146,6 @@ sub init_symbols {
     my $self = shift;
 
     my $name = $self->symbol('(name)');
-    $name->set_led($self->can('led_name'));
-    $name->lbp(1);
 
     my $for = $self->symbol('(for)');
     $for->arity('for');
@@ -168,27 +166,31 @@ sub init_symbols {
     $self->prefix('..', 0)->set_nud($self->can('nud_uplevel'));
 }
 
+sub define_function {
+    my $self = shift;
+    my (@names) = @_;
+
+    $self->SUPER::define_function(@_);
+    for my $name (@names) {
+        $self->symbol($name)->set_nud($self->can('nud_name'));
+    }
+
+    return;
+}
+
 sub nud_name {
     my $self = shift;
     my ($symbol) = @_;
 
     if ($symbol->is_defined) {
-        return $self->SUPER::nud_name(@_);
+        return $self->call(
+            $self->SUPER::nud_name($symbol),
+            # XXX this won't handle multiple arguments
+            $self->expression($symbol->lbp),
+        );
     }
     else {
         return $self->nud_variable(@_);
-    }
-}
-
-sub led_name {
-    my $self = shift;
-    my ($symbol, $left) = @_;
-
-    if ($left->arity eq 'name') {
-        return $self->call($left, $symbol->nud($self));
-    }
-    else {
-        ...
     }
 }
 
