@@ -30,8 +30,12 @@ sub default_functions {
                 if (defined $ref && $ref eq 'ARRAY') {
                     die "no iterator cycle provided?"
                         unless defined $i;
-                    $value = $value->[$i];
-                    $ref   = ref($value);
+
+                    $value = ref($value->[$i])
+                        ? $value->[$i]
+                        : { '.' => $value->[$i] };
+
+                    $ref = ref($value);
                 }
 
                 return $vars unless $ref && $ref eq 'HASH';
