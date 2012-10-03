@@ -34,8 +34,7 @@ sub default_functions {
                     $ref   = ref($value);
                 }
 
-                die "invalid value: $value"
-                    if !defined($ref) || $ref ne 'HASH';
+                return $vars unless $ref && $ref eq 'HASH';
 
                 weaken(my $vars_copy = $vars);
                 return {
