@@ -145,12 +145,6 @@ sub preprocess {
 sub init_symbols {
     my $self = shift;
 
-    my $for = $self->symbol('(for)');
-    $for->arity('for');
-
-    my $iterator = $self->symbol('(iterator)');
-    $iterator->arity('iterator');
-
     $self->infix('.', 256, $self->can('led_dot'));
     $self->infix('/', 256, $self->can('led_dot'));
 
@@ -162,18 +156,6 @@ sub init_symbols {
 
     $self->prefix('&', 0)->set_nud($self->can('nud_mark_raw'));
     $self->prefix('..', 0)->set_nud($self->can('nud_uplevel'));
-}
-
-sub define_function {
-    my $self = shift;
-    my (@names) = @_;
-
-    $self->SUPER::define_function(@_);
-    for my $name (@names) {
-        $self->symbol($name)->set_nud($self->can('nud_name'));
-    }
-
-    return;
 }
 
 sub nud_name {
@@ -290,6 +272,7 @@ sub std_block {
                            $self->symbol('(vars)')->clone(arity => 'vars'),
                            $name->clone,
                            $self->symbol('(iterator)')->clone(
+                               arity => 'iterator',
                                id    => '$~(block)',
                                first => $loop_var,
                            ),
@@ -301,6 +284,7 @@ sub std_block {
     ];
 
     return $self->symbol('(for)')->clone(
+        arity  => 'for',
         first  => $iterations,
         second => [$loop_var],
         third  => $body_block,
@@ -321,6 +305,26 @@ sub nud_uplevel {
     return $symbol->clone(arity => 'variable');
 }
 
+sub define_function {
+    my $self = shift;
+    my (@names) = @_;
+
+    $self->SUPER::define_function(@_);
+    for my $name (@names) {
+        $self->symbol($name)->set_nud($self->can('nud_name'));
+    }
+
+    return;
+}
+
+sub is_valid_field {
+    my $self = shift;
+    my ($field) = @_;
+
+    return 1 if $field->id eq '..';
+    return $self->SUPER::is_valid_field(@_);
+}
+
 sub make_field_lookup {
     my $self = shift;
     my ($var, $field, $dot) = @_;
@@ -336,14 +340,6 @@ sub make_field_lookup {
         first  => $var,
         second => $field->clone(arity => 'literal'),
     );
-}
-
-sub is_valid_field {
-    my $self = shift;
-    my ($field) = @_;
-
-    return 1 if $field->id eq '..';
-    return $self->SUPER::is_valid_field(@_);
 }
 
 sub make_ternary {
