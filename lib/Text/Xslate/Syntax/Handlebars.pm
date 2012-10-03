@@ -145,8 +145,6 @@ sub preprocess {
 sub init_symbols {
     my $self = shift;
 
-    my $name = $self->symbol('(name)');
-
     my $for = $self->symbol('(for)');
     $for->arity('for');
 
