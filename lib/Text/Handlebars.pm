@@ -22,6 +22,10 @@ sub default_functions {
             my ($length) = @_;
             return [(undef) x $length];
         },
+        '(is_code)' => sub {
+            my ($val) = @_;
+            return ref($val) && ref($val) eq 'CODE';
+        },
         '(new_vars_for)' => sub {
             my ($vars, $value, $i) = @_;
             $i = 0 unless defined $i; # XXX
@@ -60,6 +64,17 @@ sub options {
     my $options = $class->SUPER::options(@_);
     $options->{compiler} = 'Text::Handlebars::Compiler';
     return $options;
+}
+
+sub _register_builtin_methods {
+    my $self = shift;
+    my ($funcs) = @_;
+
+    weaken(my $weakself = $self);
+    $funcs->{'(run_code)'} = sub {
+        my ($code, $vars) = @_;
+        return $self->render_string($code->(), $vars);
+    };
 }
 
 1;

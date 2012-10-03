@@ -9,7 +9,6 @@ use Test::Requires 'JSON', 'Path::Class';
 
 for my $file (dir('t', 'mustache-spec', 'specs')->children) {
     next unless $file =~ /\.json$/;
-    next if $file->basename =~ /^~/; # for now
     next if $file->basename =~ /partials/;
     my $tests = decode_json($file->slurp);
     note("running " . $file->basename . " tests");
@@ -17,13 +16,35 @@ for my $file (dir('t', 'mustache-spec', 'specs')->children) {
         local $TODO = "unimplemented"
             if $file->basename eq 'delimiters.json'
             && $test->{name} =~ /partial/i;
+        local ($TODO, $SIG{__WARN__}) = ("unimplemented", sub { })
+            if $file->basename eq '~lambdas.json'
+            && $test->{name} =~ /section/i;
 
         render_ok(
             $test->{template},
-            $test->{data},
+            fix_data($test->{data}),
             $test->{expected},
             "$test->{name}: $test->{desc}"
         );
+    }
+}
+
+sub fix_data {
+    my ($data) = @_;
+
+    if (ref($data) eq 'HASH') {
+        if ($data->{__tag__} && $data->{__tag__} eq 'code') {
+            return eval $data->{perl};
+        }
+        else {
+            return { map { $_ => fix_data($data->{$_}) } keys %$data };
+        }
+    }
+    elsif (ref($data) eq 'ARRAY') {
+        return [ map { fix_data($_) } @$data ];
+    }
+    else {
+        return $data;
     }
 }
 

@@ -181,6 +181,23 @@ sub nud_name {
     }
 }
 
+sub nud_variable {
+    my $self = shift;
+    my ($symbol) = @_;
+
+    my $var = $self->SUPER::nud_variable(@_);
+
+    return $self->make_ternary(
+        $self->call('(is_code)', $var->clone),
+        $self->call(
+            '(run_code)',
+            $var->clone,
+            $self->symbol('(vars)')->clone(arity => 'vars'),
+        ),
+        $var,
+    );
+}
+
 sub led_dot {
     my $self = shift;
     my ($symbol, $left) = @_;
@@ -206,7 +223,8 @@ sub std_block {
     my $inverted = $symbol->id eq '^';
 
     my $name = $self->expression(0);
-    if ($name->arity ne 'variable' && $name->arity ne 'field') {
+    # variable lookups are parsed into a ternary expression, hence arity 'if'
+    if ($name->arity ne 'if' && $name->arity ne 'field') {
         $self->_unexpected("opening block name", $self->token);
     }
     $self->advance(';');
@@ -216,7 +234,7 @@ sub std_block {
     $self->advance('/');
     my $closing_name = $self->expression(0);
 
-    if ($closing_name->arity ne 'variable' && $closing_name->arity ne 'field') {
+    if ($closing_name->arity ne 'if' && $closing_name->arity ne 'field') {
         $self->_unexpected("closing block name", $self->token);
     }
     if ($closing_name->id ne $name->id) { # XXX
