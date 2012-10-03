@@ -54,9 +54,11 @@ sub split_tags {
                     or die "Oops!";
 
                 if ($code =~ m{^[!#^/]} && $standalone) {
-                    $input =~ s/\A$nl//;
-                    if (@chunks > 0 && $chunks[-1][0] eq 'text') {
-                        $chunks[-1][1] =~ s/^(?:(?!\n)\s)*\z//m;
+                    if ($input =~ /\A\s*(?:\n|\z)/) {
+                        $input =~ s/\A$nl//;
+                        if (@chunks > 0 && $chunks[-1][0] eq 'text') {
+                            $chunks[-1][1] =~ s/^(?:(?!\n)\s)*\z//m;
+                        }
                     }
                 }
 
