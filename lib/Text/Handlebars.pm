@@ -72,8 +72,11 @@ sub _register_builtin_methods {
 
     weaken(my $weakself = $self);
     $funcs->{'(run_code)'} = sub {
-        my ($code, $vars) = @_;
-        return $self->render_string($code->(), $vars);
+        my ($code, $vars, $open_tag, $close_tag, @args) = @_;
+        my $to_render = $code->(@args);
+        $to_render = "{{= $open_tag $close_tag =}}$to_render"
+            if defined($open_tag) && defined($close_tag) && $close_tag ne '}}';
+        return $self->render_string($to_render, $vars);
     };
 }
 

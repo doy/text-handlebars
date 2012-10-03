@@ -29,6 +29,9 @@ sub split_tags {
 
     my @chunks;
 
+    my @raw_text;
+    my @delimiters;
+
     my $close_tag;
     my $standalone = 1;
     while ($input) {
@@ -48,6 +51,22 @@ sub split_tags {
                 my $code = substr $input, 0, $pos, '';
                 $input =~ s/\A\Q$close_tag//
                     or die "Oops!";
+
+                my @extra;
+                if ($code =~ m{^/}) {
+                    push @extra, pop @raw_text;
+                    push @extra, pop @delimiters;
+                    if (@raw_text) {
+                        $raw_text[-1] .= $extra[0];
+                    }
+                }
+                if (@raw_text) {
+                    $raw_text[-1] .= $tag_start . $code . $tag_end;
+                }
+                if ($code =~ m{^[#^]}) {
+                    push @raw_text, '';
+                    push @delimiters, [$tag_start, $tag_end];
+                }
 
                 my $autochomp = $code =~ m{^[!#^/=]};
 
@@ -70,7 +89,8 @@ sub split_tags {
                 if (length($code)) {
                     push @chunks, [
                         ($close_tag eq '}}}' ? 'raw_code' : 'code'),
-                        $code
+                        $code,
+                        @extra,
                     ];
                 }
 
@@ -92,11 +112,16 @@ sub split_tags {
             my $text = $1;
             if (length($text)) {
                 push @chunks, [ text => $text ];
+
                 if ($standalone) {
                     $standalone = $text =~ /(?:^|\n)\s*$/;
                 }
                 else {
                     $standalone = $text =~ /\n\s*$/;
+                }
+
+                if (@raw_text) {
+                    $raw_text[-1] .= $text;
                 }
             }
         }
@@ -126,14 +151,24 @@ sub preprocess {
 
     my $code = '';
     for my $chunk (@chunks) {
-        my ($type, $content) = @$chunk;
+        my ($type, $content, $raw_text, $delimiters) = @$chunk;
         if ($type eq 'text') {
             $content =~ s/(["\\])/\\$1/g;
             $code .= qq{print_raw "$content";\n}
                 if length($content);
         }
         elsif ($type eq 'code') {
-            $code .= qq{$content;\n};
+            my $extra = '';
+            if (@$chunk > 2) {
+                $chunk->[2] =~ s/(["\\])/\\$1/g;
+                $chunk->[3][0] =~ s/(["\\])/\\$1/g;
+                $chunk->[3][1] =~ s/(["\\])/\\$1/g;
+
+                $extra = ' "'
+                       . join('" "', $chunk->[2], @{ $chunk->[3] })
+                       . '"';
+            }
+            $code .= qq{$content$extra;\n};
         }
         elsif ($type eq 'raw_code') {
             $code .= qq{mark_raw $content;\n};
@@ -224,7 +259,11 @@ sub std_block {
 
     my $name = $self->expression(0);
     # variable lookups are parsed into a ternary expression, hence arity 'if'
-    if ($name->arity ne 'if' && $name->arity ne 'field') {
+    if ($name->arity eq 'if') {
+        $name = $name->third;
+    }
+
+    if ($name->arity ne 'variable' && $name->arity ne 'field') {
         $self->_unexpected("opening block name", $self->token);
     }
     $self->advance(';');
@@ -232,14 +271,27 @@ sub std_block {
     my $body = $self->statements;
 
     $self->advance('/');
-    my $closing_name = $self->expression(0);
+    # 1 so that i pick up names and field accesses, but not literals
+    # closing tags are followed by a literal string containing their raw text
+    my $closing_name = $self->expression(1);
+    if ($closing_name->arity eq 'if') {
+        $closing_name = $closing_name->third;
+    }
 
-    if ($closing_name->arity ne 'if' && $closing_name->arity ne 'field') {
+    if ($closing_name->arity ne 'variable' && $closing_name->arity ne 'field') {
         $self->_unexpected("closing block name", $self->token);
     }
     if ($closing_name->id ne $name->id) { # XXX
         $self->_unexpected('/' . $name->id, $self->token);
     }
+
+    my $raw_text = $self->token;
+    $self->advance;
+    my $open_tag = $self->token;
+    $self->advance;
+    my $close_tag = $self->token;
+    $self->advance;
+
     $self->advance(';');
 
     my $iterations = $inverted
@@ -308,11 +360,24 @@ sub std_block {
         ),
     ];
 
-    return $self->symbol('(for)')->clone(
-        arity  => 'for',
-        first  => $iterations,
-        second => [$loop_var],
-        third  => $body_block,
+    return $self->make_ternary(
+        $self->call('(is_code)', $name->clone),
+        $self->print_raw(
+            $self->call(
+                '(run_code)',
+                $name->clone,
+                $self->symbol('(vars)')->clone(arity => 'vars'),
+                $open_tag->clone,
+                $close_tag->clone,
+                $raw_text->clone,
+            ),
+        ),
+        $self->symbol('(for)')->clone(
+            arity  => 'for',
+            first  => $iterations,
+            second => [$loop_var],
+            third  => $body_block,
+        ),
     );
 }
 
@@ -376,6 +441,11 @@ sub make_ternary {
         second => $then,
         third  => $else,
     );
+}
+
+sub print_raw {
+    my $self = shift;
+    return $self->print(@_)->clone(id => 'print_raw');
 }
 
 if (0) {

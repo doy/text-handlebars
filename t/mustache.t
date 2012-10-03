@@ -87,7 +87,6 @@ RENDERED
     "section with non-empty list"
 );
 
-{ local $TODO = "unimplemented"; local $SIG{__WARN__} = sub { };
 render_ok(
     <<'TEMPLATE',
 {{#wrapped}}
@@ -97,12 +96,9 @@ TEMPLATE
     {
         name    => 'Willy',
         wrapped => sub {
-            return sub {
-                my ($text) = @_;
-                return '<b>'
-                     . Text::Handlebars->new->render_string($text) # XXX
-                     . '</b>';
-            };
+            my ($text) = @_;
+            chomp($text);
+            return "<b>$text</b>\n";
         },
     },
     <<'RENDERED',
@@ -110,7 +106,6 @@ TEMPLATE
 RENDERED
     "lambdas"
 );
-}
 
 render_ok(
     <<'TEMPLATE',

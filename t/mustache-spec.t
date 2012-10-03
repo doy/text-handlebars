@@ -16,9 +16,6 @@ for my $file (dir('t', 'mustache-spec', 'specs')->children) {
         local $TODO = "unimplemented"
             if $file->basename eq 'delimiters.json'
             && $test->{name} =~ /partial/i;
-        local ($TODO, $SIG{__WARN__}) = ("unimplemented", sub { })
-            if $file->basename eq '~lambdas.json'
-            && $test->{name} =~ /section/i;
 
         render_ok(
             $test->{template},
