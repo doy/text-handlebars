@@ -12,7 +12,7 @@ for my $file (dir('t', 'mustache-spec', 'specs')->children) {
     next if $file->basename =~ /^~/; # for now
     next if $file->basename =~ /partials/;
     my $tests = decode_json($file->slurp);
-    diag("running " . $file->basename . " tests");
+    note("running " . $file->basename . " tests");
     for my $test (@{ $tests->{tests} }) {
         local $TODO = "unimplemented"
             if $file->basename eq 'delimiters.json'
