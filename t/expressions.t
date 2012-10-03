@@ -45,7 +45,6 @@ render_ok(
     "backtracking with ../"
 );
 
-{ local $TODO = "autochomping issues";
 render_ok(
     <<'TEMPLATE',
 {{#page}}
@@ -63,7 +62,6 @@ TEMPLATE
 RENDERED
     "multilevel backtracking with ../"
 );
-}
 
 render_ok(
     '{{#article}}<h1>{{title}}</h1> - {{../metadata.date}}{{/article}}',

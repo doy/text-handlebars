@@ -6,6 +6,8 @@ use Text::Xslate::Util qw($STRING neat p);
 
 extends 'Text::Xslate::Parser';
 
+my $nl = qr/\x0d?\x0a/;
+
 sub _build_identity_pattern { qr/[A-Za-z_][A-Za-z0-9_?]*/ }
 sub _build_comment_pattern  { qr/\![^;]*/                }
 
@@ -32,6 +34,7 @@ sub split_tags {
     my @chunks;
 
     my $close_tag;
+    my $standalone = 1;
     while ($input) {
         if ($close_tag) {
             my $start = 0;
@@ -49,6 +52,13 @@ sub split_tags {
                 my $code = substr $input, 0, $pos, '';
                 $input =~ s/\A\Q$close_tag//
                     or die "Oops!";
+
+                if ($code =~ m{^[!#^/]} && $standalone) {
+                    $input =~ s/\A$nl//;
+                    if (@chunks > 0 && $chunks[-1][0] eq 'text') {
+                        $chunks[-1][1] =~ s/^(?:(?!\n)\s)*\z//m;
+                    }
+                }
 
                 push @chunks, [
                     ($close_tag eq '}}}' ? 'raw_code' : 'code'),
@@ -70,7 +80,16 @@ sub split_tags {
             }
         }
         elsif ($input =~ s/\A$lex_text//) {
-            push @chunks, [ text => $1 ];
+            my $text = $1;
+            if (length($text)) {
+                push @chunks, [ text => $text ];
+                if ($standalone) {
+                    $standalone = $text =~ /(?:^|\n)\s*$/;
+                }
+                else {
+                    $standalone = $text =~ /\n\s*$/;
+                }
+            }
         }
         else {
             confess "Oops: unreached code, near " . p($input);
@@ -97,21 +116,15 @@ sub preprocess {
     my @chunks = $self->split_tags($input);
 
     my $code = '';
-    my $suppress_newline;
     for my $chunk (@chunks) {
         my ($type, $content) = @$chunk;
         if ($type eq 'text') {
             $content =~ s/(["\\])/\\$1/g;
-            $content =~ s/^\n//
-                if $suppress_newline;
             $code .= qq{print_raw "$content";\n}
                 if length($content);
-            $suppress_newline = 0;
         }
         elsif ($type eq 'code') {
             $code .= qq{$content;\n};
-            $suppress_newline = 1
-                if $content =~ m{^[#^/]};
         }
         elsif ($type eq 'raw_code') {
             $code .= qq{mark_raw $content;\n};
