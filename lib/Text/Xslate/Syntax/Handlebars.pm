@@ -179,7 +179,7 @@ sub preprocess {
             }
         }
         elsif ($type eq 'raw_code') {
-            $code .= qq{mark_raw $content;\n};
+            $code .= qq{&$content;\n};
         }
         else {
             $self->_error("Oops: Unknown token: $content ($type)");
