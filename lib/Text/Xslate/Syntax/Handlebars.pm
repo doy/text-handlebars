@@ -314,6 +314,8 @@ sub std_block {
     if ($name->arity ne 'variable' && $name->arity ne 'field' && $name->arity ne 'call') {
         $self->_unexpected("opening block name", $self->token);
     }
+    my $name_string = $self->_field_to_string($name);
+
     $self->advance(';');
 
     my $body = $self->statements;
@@ -335,8 +337,10 @@ sub std_block {
     if ($closing_name->arity ne 'variable' && $closing_name->arity ne 'field' && $closing_name->arity ne 'call') {
         $self->_unexpected("closing block name", $self->token);
     }
-    if ($closing_name->id ne $name->id) { # XXX
-        $self->_unexpected('/' . $name->id, $self->token);
+    my $closing_name_string = $self->_field_to_string($closing_name);
+
+    if ($name_string ne $closing_name_string) {
+        $self->_unexpected('/' . $name_string, $self->token);
     }
 
     $self->advance(';');
@@ -553,6 +557,22 @@ sub check_lambda {
         ),
         $var,
     );
+}
+
+sub _field_to_string {
+    my $self = shift;
+    my ($symbol) = @_;
+
+    # undo check_lambda
+    return $self->_field_to_string($symbol->third)
+        if $symbol->arity eq 'if';
+
+    # name and variable can just be returned
+    return $symbol->id
+        unless $symbol->arity eq 'field';
+
+    # field accesses should recurse on the first and append the second
+    return $self->_field_to_string($symbol->first) . '.' . $symbol->second->id;
 }
 
 __PACKAGE__->meta->make_immutable;
