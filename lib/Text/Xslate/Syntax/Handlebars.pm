@@ -55,20 +55,6 @@ sub split_tags {
                     or die "Oops!";
 
                 my @extra;
-                if ($code =~ m{^/}) {
-                    push @extra, pop @raw_text;
-                    push @extra, pop @delimiters;
-                    if (@raw_text) {
-                        $raw_text[-1] .= $extra[0];
-                    }
-                }
-                if (@raw_text) {
-                    $raw_text[-1] .= $tag_start . $code . $tag_end;
-                }
-                if ($code =~ m{^[#^]}) {
-                    push @raw_text, '';
-                    push @delimiters, [$tag_start, $tag_end];
-                }
 
                 my $autochomp = $code =~ m{^[!#^/=>]};
 
@@ -84,11 +70,29 @@ sub split_tags {
                         $input =~ s/\A$nl//;
                         if (@chunks > 0 && $chunks[-1][0] eq 'text' && $code !~ m{^>}) {
                             $chunks[-1][1] =~ s/^(?:(?!\n)\s)*\z//m;
+                            if (@raw_text) {
+                                $raw_text[-1] =~ s/^(?:(?!\n)\s)*\z//m;
+                            }
                         }
                     }
                 }
                 else {
                     $standalone = 0;
+                }
+
+                if ($code =~ m{^/}) {
+                    push @extra, pop @raw_text;
+                    push @extra, pop @delimiters;
+                    if (@raw_text) {
+                        $raw_text[-1] .= $extra[0];
+                    }
+                }
+                if (@raw_text) {
+                    $raw_text[-1] .= $tag_start . $code . $tag_end;
+                }
+                if ($code =~ m{^[#^]}) {
+                    push @raw_text, '';
+                    push @delimiters, [$tag_start, $tag_end];
                 }
 
                 if (length($code)) {
