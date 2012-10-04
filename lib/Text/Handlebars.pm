@@ -63,7 +63,10 @@ sub options {
     my $class = shift;
 
     my $options = $class->SUPER::options(@_);
+
     $options->{compiler} = 'Text::Handlebars::Compiler';
+    $options->{helpers}  = {};
+
     return $options;
 }
 
@@ -86,6 +89,19 @@ sub _register_builtin_methods {
         return 1 if try { $weakself->find_file($filename); 1 };
         return 0;
     };
+
+    for my $helper (keys %{ $self->{helpers} }) {
+        my $code = $self->{helpers}{$helper};
+        $funcs->{$helper} = sub {
+            my ($raw_text, @args) = @_;
+            my $recurse = sub {
+                my ($vars) = @_;
+                return $weakself->render_string($raw_text, $vars);
+            };
+
+            return $code->(@args, { fn => $recurse });
+        }
+    }
 }
 
 1;

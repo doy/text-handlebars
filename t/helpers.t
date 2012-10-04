@@ -5,7 +5,6 @@ use lib 't/lib';
 use Test::More;
 use Test::Handlebars;
 
-{ local $TODO = "unimplemented"; local $SIG{__WARN__} = sub { };
 render_ok(
     {
         helpers => {
@@ -25,7 +24,7 @@ render_ok(
     {
         helpers => {
             list => sub {
-                my ($items, $options) = @_;
+                my ($context, $items, $options) = @_;
                 my $out = "<ul>";
 
                 for my $item (@$items) {
@@ -45,6 +44,5 @@ render_ok(
     '<ul><li>Jesse Luehrs</li><li>Shawn Moore</li><li>Stevan Little</li></ul>',
     "helpers with arguments"
 );
-}
 
 done_testing;

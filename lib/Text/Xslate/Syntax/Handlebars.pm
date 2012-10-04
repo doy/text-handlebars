@@ -311,7 +311,7 @@ sub std_block {
         $name = $name->third;
     }
 
-    if ($name->arity ne 'variable' && $name->arity ne 'field') {
+    if ($name->arity ne 'variable' && $name->arity ne 'field' && $name->arity ne 'call') {
         $self->_unexpected("opening block name", $self->token);
     }
     $self->advance(';');
@@ -332,7 +332,7 @@ sub std_block {
         $closing_name = $closing_name->third;
     }
 
-    if ($closing_name->arity ne 'variable' && $closing_name->arity ne 'field') {
+    if ($closing_name->arity ne 'variable' && $closing_name->arity ne 'field' && $closing_name->arity ne 'call') {
         $self->_unexpected("closing block name", $self->token);
     }
     if ($closing_name->id ne $name->id) { # XXX
@@ -340,6 +340,14 @@ sub std_block {
     }
 
     $self->advance(';');
+
+    if ($name->arity eq 'call') {
+        unshift @{ $name->second }, (
+            $raw_text->clone,
+            $self->symbol('(vars)')->clone(arity => 'vars'),
+        );
+        return $self->print_raw($name);
+    }
 
     my $iterations = $inverted
         ? ($self->make_ternary(
