@@ -196,7 +196,11 @@ sub preprocess {
 sub init_symbols {
     my $self = shift;
 
-    $self->symbol('(variable)')->set_nud($self->can('nud_variable'));
+    for my $type (qw(name variable literal)) {
+        my $symbol = $self->symbol("($type)");
+        $symbol->set_led($self->can("led_$type"));
+        $symbol->lbp(10);
+    }
 
     $self->infix('.', 256, $self->can('led_dot'));
     $self->infix('/', 256, $self->can('led_dot'));
@@ -217,11 +221,15 @@ sub nud_name {
     my $self = shift;
     my ($symbol) = @_;
 
-    return $self->call(
-        $self->SUPER::nud_name($symbol),
-        # XXX this won't handle multiple arguments
-        $self->expression($symbol->lbp),
-    );
+    my $name = $self->SUPER::nud_name($symbol);
+
+    return $self->call($name);
+}
+
+sub led_name {
+    my $self = shift;
+
+    $self->_unexpected("a variable or literal", $self->token);
 }
 
 sub nud_variable {
@@ -230,15 +238,47 @@ sub nud_variable {
 
     my $var = $self->SUPER::nud_variable(@_);
 
-    return $self->make_ternary(
-        $self->call('(is_code)', $var->clone),
-        $self->call(
-            '(run_code)',
-            $var->clone,
-            $self->symbol('(vars)')->clone(arity => 'vars'),
-        ),
-        $var,
-    );
+    return $self->check_lambda($var);
+}
+
+sub led_variable {
+    my $self = shift;
+    my ($symbol, $left) = @_;
+
+    if ($left->arity ne 'call') {
+        $self->_error("Unexpected variable found", $symbol);
+    }
+
+    my $var = $symbol;
+
+    # was this actually supposed to be an expression?
+    # for instance, {{foo bar baz.quux blorg}}
+    # if we get here for baz, we need to make sure we end up with all of
+    # baz.quux
+    # this basically just reimplements $self->expression, except starting
+    # partway through
+    while ($self->token->lbp > $var->lbp) {
+        my $token = $self->token;
+        $self->advance;
+        $var = $token->led($self, $var);
+    }
+
+    push @{ $left->second }, $self->check_lambda($var);
+
+    return $left;
+}
+
+sub led_literal {
+    my $self = shift;
+    my ($symbol, $left) = @_;
+
+    if ($left->arity ne 'call') {
+        $self->_error("Unexpected literal found", $symbol);
+    }
+
+    push @{ $left->second }, $symbol;
+
+    return $left;
 }
 
 sub led_dot {
@@ -392,7 +432,9 @@ sub nud_mark_raw {
     my $self = shift;
     my ($symbol) = @_;
 
-    return $self->call('mark_raw', $self->expression(0));
+    return $self->symbol('mark_raw')->clone(
+        line => $symbol->line,
+    )->nud($self);
 }
 
 sub nud_uplevel {
@@ -436,7 +478,10 @@ sub define_function {
 
     $self->SUPER::define_function(@_);
     for my $name (@names) {
-        $self->symbol($name)->set_nud($self->can('nud_name'));
+        my $symbol = $self->symbol($name);
+        $symbol->set_nud($self->can('nud_name'));
+        $symbol->set_led($self->can('led_name'));
+        $symbol->lbp(10);
     }
 
     return;
@@ -485,6 +530,21 @@ sub make_ternary {
 sub print_raw {
     my $self = shift;
     return $self->print(@_)->clone(id => 'print_raw');
+}
+
+sub check_lambda {
+    my $self = shift;
+    my ($var) = @_;
+
+    return $self->make_ternary(
+        $self->call('(is_code)', $var->clone),
+        $self->call(
+            '(run_code)',
+            $var->clone,
+            $self->symbol('(vars)')->clone(arity => 'vars'),
+        ),
+        $var,
+    );
 }
 
 __PACKAGE__->meta->make_immutable;
