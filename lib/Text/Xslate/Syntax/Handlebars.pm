@@ -196,6 +196,8 @@ sub preprocess {
 sub init_symbols {
     my $self = shift;
 
+    $self->symbol('(variable)')->set_nud($self->can('nud_variable'));
+
     $self->infix('.', 256, $self->can('led_dot'));
     $self->infix('/', 256, $self->can('led_dot'));
 
@@ -215,16 +217,11 @@ sub nud_name {
     my $self = shift;
     my ($symbol) = @_;
 
-    if ($symbol->is_defined) {
-        return $self->call(
-            $self->SUPER::nud_name($symbol),
-            # XXX this won't handle multiple arguments
-            $self->expression($symbol->lbp),
-        );
-    }
-    else {
-        return $self->nud_variable(@_);
-    }
+    return $self->call(
+        $self->SUPER::nud_name($symbol),
+        # XXX this won't handle multiple arguments
+        $self->expression($symbol->lbp),
+    );
 }
 
 sub nud_variable {
@@ -426,6 +423,13 @@ sub std_partial {
     );
 }
 
+sub undefined_name {
+    my $self = shift;
+    my ($name) = @_;
+
+    return $self->symbol('(variable)')->clone(id => $name);
+}
+
 sub define_function {
     my $self = shift;
     my (@names) = @_;
@@ -442,8 +446,12 @@ sub is_valid_field {
     my $self = shift;
     my ($field) = @_;
 
+    # undefined symbols are all treated as variables - see undefined_name
+    return 1 if $field->arity eq 'variable';
+    # allow ../../foo
     return 1 if $field->id eq '..';
-    return $self->SUPER::is_valid_field(@_);
+
+    return;
 }
 
 sub make_field_lookup {
