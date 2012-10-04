@@ -2,9 +2,11 @@ package Text::Xslate::Syntax::Handlebars;
 use Any::Moose;
 
 use Carp 'confess';
-use Text::Xslate::Util qw($STRING neat p);
+use Text::Xslate::Util qw($DEBUG $STRING neat p);
 
 extends 'Text::Xslate::Parser';
+
+use constant _DUMP_PROTO => scalar($DEBUG =~ /\b dump=proto \b/xmsi);
 
 my $nl = qr/\x0d?\x0a/;
 
@@ -181,6 +183,7 @@ sub preprocess {
         }
     }
 
+    print STDOUT $code, "\n" if _DUMP_PROTO;
     return $code;
 }
 
