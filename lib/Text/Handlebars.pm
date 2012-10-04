@@ -29,7 +29,6 @@ sub default_functions {
         },
         '(new_vars_for)' => sub {
             my ($vars, $value, $i) = @_;
-            $i = 0 unless defined $i; # XXX
 
             if (my $ref = ref($value)) {
                 if (defined $ref && $ref eq 'ARRAY') {
