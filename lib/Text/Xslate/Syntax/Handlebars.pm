@@ -14,8 +14,8 @@ sub _build_identity_pattern { qr/[A-Za-z_][A-Za-z0-9_?]*/ }
 sub _build_comment_pattern  { qr/\![^;]*/                }
 
 sub _build_line_start { undef }
-sub _build_tag_start  { '{{'  } # XXX needs to be modifiable
-sub _build_tag_end    { '}}'  } # XXX needs to be modifiable
+sub _build_tag_start  { '{{'  }
+sub _build_tag_end    { '}}'  }
 
 sub _build_shortcut_table { +{} }
 
