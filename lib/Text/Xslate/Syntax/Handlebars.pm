@@ -289,7 +289,7 @@ sub led_dot {
 
     $self->advance;
 
-    return $dot;
+    return $self->check_lambda($dot);
 }
 
 sub nud_dot {
