@@ -130,4 +130,28 @@ sub _register_builtin_methods {
     };
 }
 
+sub render_string {
+    my $self = shift;
+    my ($string, $vars) = @_;
+
+    if (ref($vars) && ref($vars) eq 'HASH') {
+        return $self->SUPER::render_string(@_);
+    }
+    else {
+        return $self->SUPER::render_string($string, { '.' => $vars });
+    }
+}
+
+sub render {
+    my $self = shift;
+    my ($name, $vars) = @_;
+
+    if (ref($vars) && ref($vars) eq 'HASH') {
+        return $self->SUPER::render(@_);
+    }
+    else {
+        return $self->SUPER::render($name, { '.' => $vars });
+    }
+}
+
 1;

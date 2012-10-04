@@ -87,4 +87,20 @@ render_ok(
 );
 }
 
+render_ok(
+    '{{.}} {{this}}',
+    "foo",
+    "foo foo",
+    "top level current context"
+);
+
+render_ok(
+    '{{#thing}}{{.}} {{this}}{{/thing}}',
+    {
+        thing => [ "foo" ],
+    },
+    "foo foo",
+    "nested current context"
+);
+
 done_testing;

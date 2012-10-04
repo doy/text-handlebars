@@ -32,7 +32,6 @@ RENDERED
     "with helper"
 );
 
-{ local $TODO = "unimplemented"; local $SIG{__WARN__} = sub { };
 render_ok(
     <<'TEMPLATE',
 <ul class="people_list">
@@ -57,7 +56,6 @@ TEMPLATE
 RENDERED
     "each helper"
 );
-}
 
 render_ok(
     <<'TEMPLATE',

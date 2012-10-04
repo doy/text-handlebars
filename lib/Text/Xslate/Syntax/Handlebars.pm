@@ -210,6 +210,7 @@ sub init_symbols {
     $self->infix('/', 256, $self->can('led_dot'));
 
     $self->symbol('.')->set_nud($self->can('nud_dot'));
+    $self->symbol('this')->set_nud($self->can('nud_dot'));
 
     $self->symbol('#')->set_std($self->can('std_block'));
     $self->symbol('^')->set_std($self->can('std_block'));
@@ -300,7 +301,7 @@ sub nud_dot {
     my $self = shift;
     my ($symbol) = @_;
 
-    return $symbol->clone(arity => 'variable');
+    return $symbol->clone(arity => 'variable', id => '.');
 }
 
 sub std_block {
