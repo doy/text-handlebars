@@ -73,4 +73,18 @@ render_ok(
     "backtracking into other hash variables with ../ and ."
 );
 
+{ local $TODO = "unimplemented";
+render_ok(
+    '{{articles.[10].comments}}',
+    {
+        articles => [
+            (({}) x 10),
+            { comments => "First post!" },
+        ],
+    },
+    'First post!',
+    "array dereferencing"
+);
+}
+
 done_testing;
