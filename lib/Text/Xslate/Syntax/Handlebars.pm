@@ -350,11 +350,15 @@ sub std_block {
     $self->advance(';');
 
     if ($name->arity eq 'call') {
-        unshift @{ $name->second }, (
-            $raw_text->clone,
-            $self->symbol('(vars)')->clone(arity => 'vars'),
+        return $self->print_raw(
+            $self->call(
+                '(run_block_helper)',
+                $self->symbol($name->first->id)->clone,
+                $raw_text->clone,
+                $self->symbol('(vars)')->clone(arity => 'vars'),
+                @{ $name->second },
+            ),
         );
-        return $self->print_raw($name);
     }
 
     my $iterations = $inverted

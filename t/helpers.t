@@ -7,7 +7,7 @@ use Test::Handlebars;
 
 render_ok(
     {
-        helpers => {
+        function => {
             noop => sub {
                 my ($context, $options) = @_;
                 return $options->{fn}->($context);
@@ -36,7 +36,7 @@ RENDERED
 
 render_ok(
     {
-        helpers => {
+        function => {
             with => sub {
                 my ($context, $new_context, $options) = @_;
                 return $options->{fn}->($new_context);
@@ -71,7 +71,7 @@ RENDERED
 
 render_ok(
     {
-        helpers => {
+        function => {
             with => sub {
                 my ($context, $new_context, $options) = @_;
                 return $options->{fn}->($new_context);
@@ -138,7 +138,7 @@ RENDERED
 
 render_ok(
     {
-        helpers => {
+        function => {
             list => sub {
                 my ($context, $items, $options) = @_;
                 my $out = "<ul>";
@@ -178,7 +178,7 @@ RENDERED
 
 render_ok(
     {
-        helpers => {
+        function => {
             if => sub {
                 my ($context, $conditional, $options) = @_;
                 if ($conditional) {
@@ -204,7 +204,7 @@ RENDERED
 
 render_ok(
     {
-        helpers => {
+        function => {
             if => sub {
                 my ($context, $conditional, $options) = @_;
                 if ($conditional) {
@@ -230,7 +230,7 @@ RENDERED
 { local $TODO = "unimplemented"; local $SIG{__WARN__} = sub { };
 render_ok(
     {
-        helpers => {
+        function => {
             if => sub {
                 my ($context, $conditional, $options) = @_;
                 if ($conditional) {
@@ -260,7 +260,7 @@ RENDERED
 
 render_ok(
     {
-        helpers => {
+        function => {
             if => sub {
                 my ($context, $conditional, $options) = @_;
                 if ($conditional) {
@@ -290,7 +290,7 @@ RENDERED
 
 render_ok(
     {
-        helpers => {
+        function => {
             list => sub {
                 my ($context, $items, $options) = @_;
 
@@ -333,7 +333,7 @@ RENDERED
 
 render_ok(
     {
-        helpers => {
+        function => {
             list => sub {
                 my ($context, $items, $options) = @_;
 

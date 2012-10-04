@@ -64,7 +64,6 @@ sub options {
     my $options = $class->SUPER::options(@_);
 
     $options->{compiler} = 'Text::Handlebars::Compiler';
-    $options->{helpers}  = {};
 
     return $options;
 }
@@ -88,19 +87,16 @@ sub _register_builtin_methods {
         return 1 if try { $weakself->find_file($filename); 1 };
         return 0;
     };
+    $funcs->{'(run_block_helper)'} = sub {
+        my ($code, $raw_text, $vars, @args) = @_;
 
-    for my $helper (keys %{ $self->{helpers} }) {
-        my $code = $self->{helpers}{$helper};
-        $funcs->{$helper} = sub {
-            my ($raw_text, $vars, @args) = @_;
-            my $recurse = sub {
-                my ($new_vars) = @_;
-                return $weakself->render_string($raw_text, $new_vars);
-            };
+        my $recurse = sub {
+            my ($new_vars) = @_;
+            return $weakself->render_string($raw_text, $new_vars);
+        };
 
-            return $code->($vars, @args, { fn => $recurse });
-        }
-    }
+        return $code->($vars, @args, { fn => $recurse });
+    };
 }
 
 1;
