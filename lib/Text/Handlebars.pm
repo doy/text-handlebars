@@ -93,13 +93,13 @@ sub _register_builtin_methods {
     for my $helper (keys %{ $self->{helpers} }) {
         my $code = $self->{helpers}{$helper};
         $funcs->{$helper} = sub {
-            my ($raw_text, @args) = @_;
+            my ($raw_text, $vars, @args) = @_;
             my $recurse = sub {
-                my ($vars) = @_;
-                return $weakself->render_string($raw_text, $vars);
+                my ($new_vars) = @_;
+                return $weakself->render_string($raw_text, $new_vars);
             };
 
-            return $code->(@args, { fn => $recurse });
+            return $code->($vars, @args, { fn => $recurse });
         }
     }
 }
