@@ -64,6 +64,37 @@ sub options {
     my $options = $class->SUPER::options(@_);
 
     $options->{compiler} = 'Text::Handlebars::Compiler';
+    $options->{function} = {
+        ($options->{function} ? %{ $options->{function} } : ()),
+        with => sub {
+            my ($context, $new_context, $options) = @_;
+            return $options->{fn}->($new_context);
+        },
+        each => sub {
+            my ($context, $list, $options) = @_;
+
+            my $ret = '';
+            for my $new_context (@$list) {
+                $ret .= $options->{fn}->($new_context);
+            }
+
+            return $ret;
+        },
+        if => sub {
+            my ($context, $conditional, $options) = @_;
+            if ($conditional) {
+                return $options->{fn}->($context);
+            }
+            return '';
+        },
+        unless => sub {
+            my ($context, $conditional, $options) = @_;
+            unless ($conditional) {
+                return $options->{fn}->($context);
+            }
+            return '';
+        },
+    },
 
     return $options;
 }
