@@ -164,16 +164,19 @@ sub preprocess {
         }
         elsif ($type eq 'code') {
             my $extra = '';
-            if (@$chunk > 2) {
+            if ($content =~ s{^/}{}) {
                 $chunk->[2] =~ s/(["\\])/\\$1/g;
                 $chunk->[3][0] =~ s/(["\\])/\\$1/g;
                 $chunk->[3][1] =~ s/(["\\])/\\$1/g;
 
-                $extra = ' "'
+                $extra = '"'
                        . join('" "', $chunk->[2], @{ $chunk->[3] })
                        . '"';
+                $code .= qq{/$extra $content;\n};
             }
-            $code .= qq{$content$extra;\n};
+            else {
+                $code .= qq{$content;\n};
+            }
         }
         elsif ($type eq 'raw_code') {
             $code .= qq{mark_raw $content;\n};
@@ -279,9 +282,15 @@ sub std_block {
     my $body = $self->statements;
 
     $self->advance('/');
-    # 1 so that i pick up names and field accesses, but not literals
-    # closing tags are followed by a literal string containing their raw text
-    my $closing_name = $self->expression(1);
+
+    my $raw_text = $self->token;
+    $self->advance;
+    my $open_tag = $self->token;
+    $self->advance;
+    my $close_tag = $self->token;
+    $self->advance;
+
+    my $closing_name = $self->expression(0);
     if ($closing_name->arity eq 'if') {
         $closing_name = $closing_name->third;
     }
@@ -292,13 +301,6 @@ sub std_block {
     if ($closing_name->id ne $name->id) { # XXX
         $self->_unexpected('/' . $name->id, $self->token);
     }
-
-    my $raw_text = $self->token;
-    $self->advance;
-    my $open_tag = $self->token;
-    $self->advance;
-    my $close_tag = $self->token;
-    $self->advance;
 
     $self->advance(';');
 
