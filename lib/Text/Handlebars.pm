@@ -11,6 +11,26 @@ sub default_functions {
     my $class = shift;
     return {
         %{ $class->SUPER::default_functions(@_) },
+        with => sub {
+            my ($context, $new_context, $options) = @_;
+            return $options->{fn}->($new_context);
+        },
+        each => sub {
+            my ($context, $list, $options) = @_;
+            return join '', map { $options->{fn}->($_) } @$list;
+        },
+        if => sub {
+            my ($context, $conditional, $options) = @_;
+            return $conditional
+                ? $options->{fn}->($context)
+                : $options->{inverse}->($context);
+        },
+        unless => sub {
+            my ($context, $conditional, $options) = @_;
+            return $conditional
+                ? $options->{inverse}->($context)
+                : $options->{fn}->($context);
+        },
         '(is_array)' => sub {
             my ($val) = @_;
             return ref($val) && ref($val) eq 'ARRAY';
@@ -70,29 +90,6 @@ sub options {
     my $options = $class->SUPER::options(@_);
 
     $options->{compiler} = 'Text::Handlebars::Compiler';
-    $options->{function} = {
-        ($options->{function} ? %{ $options->{function} } : ()),
-        with => sub {
-            my ($context, $new_context, $options) = @_;
-            return $options->{fn}->($new_context);
-        },
-        each => sub {
-            my ($context, $list, $options) = @_;
-            return join '', map { $options->{fn}->($_) } @$list;
-        },
-        if => sub {
-            my ($context, $conditional, $options) = @_;
-            return $conditional
-                ? $options->{fn}->($context)
-                : $options->{inverse}->($context);
-        },
-        unless => sub {
-            my ($context, $conditional, $options) = @_;
-            return $conditional
-                ? $options->{inverse}->($context)
-                : $options->{fn}->($context);
-        },
-    },
 
     return $options;
 }

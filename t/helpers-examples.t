@@ -7,7 +7,6 @@ use Test::Handlebars;
 
 use Text::Xslate 'mark_raw';
 
-{ local $TODO = "unimplemented";
 render_ok(
     {
         function => {
@@ -92,6 +91,5 @@ TEMPLATE
 RENDERED
     "example"
 );
-}
 
 done_testing;
