@@ -61,4 +61,13 @@ render_ok(
     "\@index variable"
 );
 
+render_ok(
+    '{{#foo}}{{/foo}}bar',
+    {
+        foo => [ 1, 2, 3 ],
+    },
+    'bar',
+    "empty block"
+);
+
 done_testing;
