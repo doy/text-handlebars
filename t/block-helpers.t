@@ -7,7 +7,7 @@ use Test::Handlebars;
 
 render_ok(
     {
-        function => {
+        helpers => {
             noop => sub {
                 my ($context, $options) = @_;
                 return $options->{fn}->($context);
@@ -36,7 +36,7 @@ RENDERED
 
 render_ok(
     {
-        function => {
+        helpers => {
             with => sub {
                 my ($context, $new_context, $options) = @_;
                 return $options->{fn}->($new_context);
@@ -71,7 +71,7 @@ RENDERED
 
 render_ok(
     {
-        function => {
+        helpers => {
             with => sub {
                 my ($context, $new_context, $options) = @_;
                 return $options->{fn}->($new_context);
@@ -138,7 +138,7 @@ RENDERED
 
 render_ok(
     {
-        function => {
+        helpers => {
             list => sub {
                 my ($context, $items, $options) = @_;
                 my $out = "<ul>";
@@ -178,7 +178,7 @@ RENDERED
 
 render_ok(
     {
-        function => {
+        helpers => {
             if => sub {
                 my ($context, $conditional, $options) = @_;
                 if ($conditional) {
@@ -204,7 +204,7 @@ RENDERED
 
 render_ok(
     {
-        function => {
+        helpers => {
             if => sub {
                 my ($context, $conditional, $options) = @_;
                 if ($conditional) {
@@ -229,7 +229,7 @@ RENDERED
 
 render_ok(
     {
-        function => {
+        helpers => {
             if => sub {
                 my ($context, $conditional, $options) = @_;
                 if ($conditional) {
@@ -259,7 +259,7 @@ RENDERED
 
 render_ok(
     {
-        function => {
+        helpers => {
             if => sub {
                 my ($context, $conditional, $options) = @_;
                 if ($conditional) {
@@ -290,7 +290,7 @@ RENDERED
 { local $TODO = "unimplemented"; local $SIG{__WARN__} = sub { };
 render_ok(
     {
-        function => {
+        helpers => {
             list => sub {
                 my ($context, $items, $options) = @_;
 
@@ -336,7 +336,7 @@ RENDERED
 # more reasonable. feedback welcome!
 render_ok(
     {
-        function => {
+        helpers => {
             list => sub {
                 my ($context, $items, $options) = @_;
 
@@ -380,7 +380,7 @@ RENDERED
 
 render_ok(
     {
-        function => {
+        helpers => {
             list => sub {
                 my ($context, $items, $options) = @_;
 
@@ -413,7 +413,7 @@ render_ok(
 
 render_ok(
     {
-        function => {
+        helpers => {
             list => sub {
                 my ($context, $items, $options) = @_;
 
@@ -443,7 +443,7 @@ render_ok(
 
 render_ok(
     {
-        function => {
+        helpers => {
             list => sub {
                 my ($context, $items, $options) = @_;
 

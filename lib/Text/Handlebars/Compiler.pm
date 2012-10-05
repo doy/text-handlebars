@@ -9,6 +9,8 @@ has '+syntax' => (
     default => 'Handlebars',
 );
 
+sub define_helper { shift->parser->define_helper(@_) }
+
 sub _generate_block {
     my $self = shift;
     my ($node) = @_;

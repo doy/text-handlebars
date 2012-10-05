@@ -90,6 +90,7 @@ sub options {
     my $options = $class->SUPER::options(@_);
 
     $options->{compiler} = 'Text::Handlebars::Compiler';
+    $options->{helpers} = {};
 
     return $options;
 }
@@ -128,6 +129,23 @@ sub _register_builtin_methods {
 
         return $code->($vars, @args, $options);
     };
+
+    for my $helper (keys %{ $self->{helpers} }) {
+        $funcs->{$helper} = $self->{helpers}{$helper};
+    }
+}
+
+sub _compiler {
+    my $self = shift;
+
+    if (!ref($self->{compiler})) {
+        my $compiler = $self->SUPER::_compiler(@_);
+        $compiler->define_helper(keys %{ $self->{helpers} });
+        return $compiler;
+    }
+    else {
+        return $self->SUPER::_compiler(@_);
+    }
 }
 
 sub render_string {

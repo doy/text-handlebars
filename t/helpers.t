@@ -9,7 +9,7 @@ use Text::Xslate 'mark_raw';
 
 render_ok(
     {
-        function => {
+        helpers => {
             link => sub {
                 my ($context, $object) = @_;
                 return mark_raw(
@@ -37,7 +37,7 @@ RENDERED
 
 render_ok(
     {
-        function => {
+        helpers => {
             link => sub {
                 my ($context, $text, $url) = @_;
                 return mark_raw(
@@ -63,7 +63,7 @@ RENDERED
 { local $TODO = "unimplemented";
 render_ok(
     {
-        function => {
+        helpers => {
             link => sub {
                 my ($context, $text, $options) = @_;
 

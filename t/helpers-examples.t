@@ -9,7 +9,7 @@ use Text::Xslate 'mark_raw';
 
 render_ok(
     {
-        function => {
+        helpers => {
             fullName => sub {
                 my ($context, $person) = @_;
                 return $person->{firstName} . ' ' . $person->{lastName};
@@ -55,7 +55,7 @@ RENDERED
 
 render_ok(
     {
-        function => {
+        helpers => {
             agree_button => sub {
                 my ($context) = @_;
                 return mark_raw(

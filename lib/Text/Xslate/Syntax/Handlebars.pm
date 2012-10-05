@@ -5,6 +5,8 @@ use Any::Moose;
 use Carp 'confess';
 use Text::Xslate::Util qw($DEBUG $NUMBER neat p);
 
+use Text::Handlebars::Symbol;
+
 extends 'Text::Xslate::Parser';
 
 use constant _DUMP_PROTO => scalar($DEBUG =~ /\b dump=proto \b/xmsi);
@@ -28,6 +30,8 @@ sub _build_tag_start  { '{{'  }
 sub _build_tag_end    { '}}'  }
 
 sub _build_shortcut_table { +{} }
+
+sub symbol_class { 'Text::Handlebars::Symbol' }
 
 sub split_tags {
     my $self = shift;
@@ -579,6 +583,19 @@ sub define_function {
         $symbol->set_nud($self->can('nud_name'));
         $symbol->set_led($self->can('led_name'));
         $symbol->lbp(10);
+    }
+
+    return;
+}
+
+sub define_helper {
+    my $self = shift;
+    my (@names) = @_;
+
+    $self->define_function(@names);
+    for my $name (@names) {
+        my $symbol = $self->symbol($name);
+        $symbol->is_helper(1);
     }
 
     return;
