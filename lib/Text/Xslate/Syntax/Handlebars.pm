@@ -16,7 +16,7 @@ my $nl = qr/\x0d?\x0a/;
 my $bracket_string = qr/\[ [^\]]* \]/xms;
 my $STRING = qr/(?: $Text::Xslate::Util::STRING | $bracket_string )/xms;
 
-my $single_char = '[.#^/>&;@]';
+my $single_char = '[.#^/>&;]';
 my $OPERATOR_TOKEN = sprintf(
     "(?:%s|$single_char)",
     join('|', map{ quotemeta } qw(..))
@@ -256,8 +256,6 @@ sub init_symbols {
 
     $self->prefix('&', 0)->set_nud($self->can('nud_mark_raw'));
     $self->prefix('..', 0)->set_nud($self->can('nud_uplevel'));
-
-    $self->prefix('@', 0)->set_nud($self->can('nud_iterator'));
 }
 
 # copied from Text::Xslate::Parser, but using different definitions of
