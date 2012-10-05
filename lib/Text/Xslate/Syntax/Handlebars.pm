@@ -553,10 +553,25 @@ sub define_function {
     return;
 }
 
+sub parse_literal {
+    my $self = shift;
+    my ($literal) = @_;
+
+    if ($literal =~ /\A\[(.*)\]\z/ms) {
+        $literal = $1;
+        $literal =~ s/(["\\])/\\$1/g;
+        $literal = '"' . $literal . '"';
+    }
+
+    return $self->SUPER::parse_literal($literal);
+}
+
 sub is_valid_field {
     my $self = shift;
     my ($field) = @_;
 
+    # allow foo.[10]
+    return 1 if $field->arity eq 'literal';
     # undefined symbols are all treated as variables - see undefined_name
     return 1 if $field->arity eq 'variable';
     # allow ../../foo

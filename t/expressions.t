@@ -73,7 +73,28 @@ render_ok(
     "backtracking into other hash variables with ../ and ."
 );
 
-{ local $TODO = "unimplemented";
+render_ok(
+    '{{articles.[10].comments}}',
+    {
+        articles => {
+            10 => { comments => "First post!" },
+        },
+    },
+    'First post!',
+    "field access with non-identifiers"
+);
+
+render_ok(
+    '{{articles.[.foo\som#th"ing].comments}}',
+    {
+        articles => {
+            '.foo\som#th"ing' => { comments => "First post!" },
+        },
+    },
+    'First post!',
+    "field access with non-identifiers"
+);
+
 render_ok(
     '{{articles.[10].comments}}',
     {
@@ -85,7 +106,6 @@ render_ok(
     'First post!',
     "array dereferencing"
 );
-}
 
 render_ok(
     '{{.}} {{this}}',
