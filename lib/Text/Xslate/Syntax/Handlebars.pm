@@ -244,18 +244,22 @@ sub init_symbols {
         $symbol->set_led($self->can('led_variable'));
     }
 
-    $self->infix('.', 256, $self->can('led_dot'));
-    $self->infix('/', 256, $self->can('led_dot'));
+    for my $field_access (qw(. /)) {
+        $self->infix($field_access, 256, $self->can('led_dot'));
+    }
 
-    $self->symbol('#')->set_std($self->can('std_block'));
-    $self->symbol('^')->set_std($self->can('std_block'));
-    $self->prefix('/', 0)->is_block_end(1);
-    $self->symbol('else')->is_block_end(1);
+    for my $block ('#', '^') {
+        $self->symbol($block)->set_std($self->can('std_block'));
+    }
+
+    for my $else (qw(/ else)) {
+        $self->symbol($else)->is_block_end(1);
+    }
 
     $self->symbol('>')->set_std($self->can('std_partial'));
 
-    $self->prefix('&', 0)->set_nud($self->can('nud_mark_raw'));
-    $self->prefix('..', 0)->set_nud($self->can('nud_uplevel'));
+    $self->symbol('&')->set_nud($self->can('nud_mark_raw'));
+    $self->symbol('..')->set_nud($self->can('nud_uplevel'));
 }
 
 # copied from Text::Xslate::Parser, but using different definitions of
