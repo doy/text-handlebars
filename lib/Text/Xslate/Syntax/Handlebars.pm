@@ -337,6 +337,7 @@ sub led_variable {
     }
 
     my $var = $symbol;
+    my $rbp = $var->lbp - 1; # right-associative
 
     # was this actually supposed to be an expression?
     # for instance, {{foo bar baz.quux blorg}}
@@ -344,7 +345,7 @@ sub led_variable {
     # baz.quux
     # this basically just reimplements $self->expression, except starting
     # partway through
-    while ($self->token->lbp > $var->lbp) {
+    while ($rbp < $self->token->lbp) {
         my $token = $self->token;
         $self->advance;
         $var = $token->led($self, $var);
