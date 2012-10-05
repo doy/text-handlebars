@@ -298,7 +298,17 @@ sub nud_name {
 
     my $name = $self->SUPER::nud_name($symbol);
 
-    return $self->call($name);
+    my $call = $self->call($name);
+
+    use Data::Dump; ddx($self->token);
+    if ($self->token->is_defined) {
+        push @{ $call->second }, $self->expression(0);
+    }
+    elsif ($name->id ne 'mark_raw') {
+        push @{ $call->second }, $self->vars;
+    }
+
+    return $call;
 }
 
 sub led_name {
@@ -445,7 +455,6 @@ sub std_block {
                 ($block{else}
                     ? $block{else}{raw_text}->clone
                     : $self->literal('')),
-                $self->vars,
                 @{ $name->second },
             ),
         );

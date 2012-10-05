@@ -7,7 +7,6 @@ use Test::Handlebars;
 
 use Text::Xslate 'mark_raw';
 
-{ local $TODO = "unimplemented";
 render_ok(
     {
         function => {
@@ -61,6 +60,7 @@ RENDERED
     "helpers with literal args"
 );
 
+{ local $TODO = "unimplemented";
 render_ok(
     {
         function => {
