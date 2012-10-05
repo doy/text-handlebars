@@ -331,6 +331,9 @@ RENDERED
     "helper arguments"
 );
 
+# XXX this is almost certainly not what the api should be like, but i don't
+# understand the purpose for this feature well enough to come up with anything
+# more reasonable. feedback welcome!
 render_ok(
     {
         function => {

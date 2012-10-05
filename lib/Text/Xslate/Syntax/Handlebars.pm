@@ -20,7 +20,7 @@ my $OPERATOR_TOKEN = sprintf(
     join('|', map{ quotemeta } qw(..))
 );
 
-sub _build_identity_pattern { qr/[A-Za-z_][A-Za-z0-9_?-]*/ }
+sub _build_identity_pattern { qr/\@?[A-Za-z_][A-Za-z0-9_?-]*/ }
 sub _build_comment_pattern  { qr/\![^;]*/                }
 
 sub _build_line_start { undef }
@@ -573,25 +573,6 @@ sub std_partial {
             id    => '',
         ),
     );
-}
-
-sub nud_iterator {
-    my $self = shift;
-    my ($symbol) = @_;
-
-    my $token = $self->token;
-    if ($token->arity ne 'variable') {
-        $self->_unexpected('iterator variable', $token);
-    }
-
-    $self->advance;
-
-    if ($token->id eq 'index') {
-        return $self->iterator_index;
-    }
-    else {
-        $self->_error("Unknown iterator variable " . $token->id);
-    }
 }
 
 sub undefined_name {

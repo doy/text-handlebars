@@ -46,6 +46,7 @@ sub default_functions {
 
                 weaken(my $vars_copy = $vars);
                 return {
+                    '@index' => $i,
                     %$vars,
                     %$value,
                     '..' => $vars_copy,
