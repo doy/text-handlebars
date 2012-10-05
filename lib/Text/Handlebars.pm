@@ -7,10 +7,9 @@ use base 'Text::Xslate';
 use Scalar::Util 'weaken';
 use Try::Tiny;
 
-sub default_functions {
+sub default_helpers {
     my $class = shift;
     return {
-        %{ $class->SUPER::default_functions(@_) },
         with => sub {
             my ($context, $new_context, $options) = @_;
             return $options->{fn}->($new_context);
@@ -31,6 +30,14 @@ sub default_functions {
                 ? $options->{inverse}->($context)
                 : $options->{fn}->($context);
         },
+    };
+}
+
+sub default_functions {
+    my $class = shift;
+    return {
+        %{ $class->SUPER::default_functions(@_) },
+        %{ $class->default_helpers },
         '(is_array)' => sub {
             my ($val) = @_;
             return ref($val) && ref($val) eq 'ARRAY';
@@ -141,6 +148,7 @@ sub _compiler {
     if (!ref($self->{compiler})) {
         my $compiler = $self->SUPER::_compiler(@_);
         $compiler->define_helper(keys %{ $self->{helpers} });
+        $compiler->define_helper(keys %{ $self->default_helpers });
         return $compiler;
     }
     else {

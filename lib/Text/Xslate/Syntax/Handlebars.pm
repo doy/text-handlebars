@@ -304,11 +304,12 @@ sub nud_name {
 
     my $call = $self->call($name);
 
+    if ($name->is_helper) {
+        push @{ $call->second }, $self->vars;
+    }
+
     if ($self->token->is_defined) {
         push @{ $call->second }, $self->expression(0);
-    }
-    elsif ($name->id ne 'mark_raw') {
-        push @{ $call->second }, $self->vars;
     }
 
     return $call;
