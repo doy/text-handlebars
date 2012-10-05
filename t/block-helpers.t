@@ -227,7 +227,6 @@ RENDERED
     "if helper (false)"
 );
 
-{ local $TODO = "unimplemented"; local $SIG{__WARN__} = sub { };
 render_ok(
     {
         function => {
@@ -288,6 +287,7 @@ RENDERED
     "if/else helper (false)"
 );
 
+{ local $TODO = "unimplemented"; local $SIG{__WARN__} = sub { };
 render_ok(
     {
         function => {

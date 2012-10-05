@@ -94,7 +94,6 @@ RENDERED
     "if helper (true)"
 );
 
-{ local $TODO = "unimplemented";
 render_ok(
     <<'TEMPLATE',
 <div class="entry">
@@ -136,7 +135,6 @@ TEMPLATE
 RENDERED
     "if/else helper (true)"
 );
-}
 
 render_ok(
     <<'TEMPLATE',

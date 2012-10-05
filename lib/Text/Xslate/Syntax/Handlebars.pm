@@ -65,7 +65,7 @@ sub split_tags {
 
                 my @extra;
 
-                my $autochomp = $code =~ m{^[!#^/=>]};
+                my $autochomp = $code =~ m{^[!#^/=>]} || $code eq 'else';
 
                 if ($code =~ s/^=\s*([^\s]+)\s+([^\s]+)\s*=$//) {
                     ($tag_start, $tag_end) = ($1, $2);
@@ -89,7 +89,7 @@ sub split_tags {
                     $standalone = 0;
                 }
 
-                if ($code =~ m{^/}) {
+                if ($code =~ m{^/} || $code eq 'else') {
                     push @extra, pop @raw_text;
                     push @extra, pop @delimiters;
                     if (@raw_text) {
@@ -99,7 +99,7 @@ sub split_tags {
                 if (@raw_text) {
                     $raw_text[-1] .= $tag_start . $code . $tag_end;
                 }
-                if ($code =~ m{^[#^]}) {
+                if ($code =~ m{^[#^]} || $code eq 'else') {
                     push @raw_text, '';
                     push @delimiters, [$tag_start, $tag_end];
                 }
@@ -187,6 +187,17 @@ sub preprocess {
                        . '"';
                 $code .= qq{/$extra $content;\n};
             }
+            elsif ($content eq 'else') {
+                # XXX fix duplication
+                $chunk->[2] =~ s/(["\\])/\\$1/g;
+                $chunk->[3][0] =~ s/(["\\])/\\$1/g;
+                $chunk->[3][1] =~ s/(["\\])/\\$1/g;
+
+                $extra = '"'
+                       . join('" "', $chunk->[2], @{ $chunk->[3] })
+                       . '"';
+                $code .= qq{$content $extra;\n};
+            }
             else {
                 $code .= qq{$content;\n};
             }
@@ -224,6 +235,7 @@ sub init_symbols {
     $self->symbol('#')->set_std($self->can('std_block'));
     $self->symbol('^')->set_std($self->can('std_block'));
     $self->prefix('/', 0)->is_block_end(1);
+    $self->symbol('else')->is_block_end(1);
 
     $self->symbol('>')->set_std($self->can('std_partial'));
 
@@ -368,15 +380,31 @@ sub std_block {
 
     $self->advance(';');
 
-    my $body = $self->statements;
+    my %block;
+    my $context = 'if';
+    $block{$context}{body} = $self->statements;
+
+    if ($self->token->id eq 'else') {
+        $self->advance;
+
+        $block{$context}{raw_text} = $self->token;
+        $self->advance;
+        $block{$context}{open_tag} = $self->token;
+        $self->advance;
+        $block{$context}{close_tag} = $self->token;
+        $self->advance;
+
+        $context = 'else';
+        $block{$context}{body} = $self->statements;
+    }
 
     $self->advance('/');
 
-    my $raw_text = $self->token;
+    $block{$context}{raw_text} = $self->token;
     $self->advance;
-    my $open_tag = $self->token;
+    $block{$context}{open_tag} = $self->token;
     $self->advance;
-    my $close_tag = $self->token;
+    $block{$context}{close_tag} = $self->token;
     $self->advance;
 
     my $closing_name = $self->expression(0);
@@ -400,12 +428,25 @@ sub std_block {
             $self->call(
                 '(run_block_helper)',
                 $self->symbol($name->first->id)->clone,
-                $raw_text->clone,
+                $block{if}{raw_text}->clone,
+                ($block{else}
+                    ? $block{else}{raw_text}->clone
+                    : $self->symbol('(literal)')->clone(id => '')),
                 $self->vars,
                 @{ $name->second },
             ),
         );
     }
+
+    if ($block{else}) {
+        $self->_error("else block unsupported except with a block helper, "
+                    . "and $name_string is not a block helper");
+    }
+
+    my $body      = $block{if}{body};
+    my $raw_text  = $block{if}{raw_text};
+    my $open_tag  = $block{if}{open_tag};
+    my $close_tag = $block{if}{close_tag};
 
     my $iterations = $inverted
         ? ($self->make_ternary(

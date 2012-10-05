@@ -85,14 +85,14 @@ sub options {
             if ($conditional) {
                 return $options->{fn}->($context);
             }
-            return '';
+            return $options->{inverse} ? $options->{inverse}->($context) : '';
         },
         unless => sub {
             my ($context, $conditional, $options) = @_;
             unless ($conditional) {
                 return $options->{fn}->($context);
             }
-            return '';
+            return $options->{inverse} ? $options->{inverse}->($context) : '';
         },
     },
 
@@ -119,14 +119,19 @@ sub _register_builtin_methods {
         return 0;
     };
     $funcs->{'(run_block_helper)'} = sub {
-        my ($code, $raw_text, $vars, @args) = @_;
+        my ($code, $raw_text, $else_raw_text, $vars, @args) = @_;
 
-        my $recurse = sub {
+        my $options = {};
+        $options->{fn} = sub {
             my ($new_vars) = @_;
             return $weakself->render_string($raw_text, $new_vars);
         };
+        $options->{inverse} = sub {
+            my ($new_vars) = @_;
+            return $weakself->render_string($else_raw_text, $new_vars);
+        };
 
-        return $code->($vars, @args, { fn => $recurse });
+        return $code->($vars, @args, $options);
     };
 }
 
