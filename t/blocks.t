@@ -70,7 +70,6 @@ render_ok(
     "empty block"
 );
 
-{ local $TODO = "unimplemented";
 render_ok(
     '{{#people}}{{name}}{{^}}{{none}}{{/people}}',
     {
@@ -93,7 +92,7 @@ render_ok(
 render_ok(
     <<'TEMPLATE',
 {{#people}}
-{{name}}
+{{.}}
 {{^}}
 {{none}}
 {{/people}}
@@ -113,6 +112,5 @@ Stevan Little
 RENDERED
     "inverted block shorthand (non-empty array)"
 );
-}
 
 done_testing;

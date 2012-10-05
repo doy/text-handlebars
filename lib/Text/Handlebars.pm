@@ -15,9 +15,14 @@ sub default_functions {
             my ($val) = @_;
             return ref($val) && ref($val) eq 'ARRAY';
         },
-        '(is_empty_array)' => sub {
+        '(is_falsy)' => sub {
             my ($val) = @_;
-            return @$val == 0;
+            if (ref($val) && ref($val) eq 'ARRAY') {
+                return @$val == 0;
+            }
+            else {
+                return !$val;
+            }
         },
         '(make_array)' => sub {
             my ($length) = @_;

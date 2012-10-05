@@ -438,82 +438,55 @@ sub std_block {
                 $block{if}{raw_text}->clone,
                 ($block{else}
                     ? $block{else}{raw_text}->clone
-                    : $self->symbol('(literal)')->clone(id => '')),
+                    : $self->literal('')),
                 $self->vars,
                 @{ $name->second },
             ),
         );
     }
 
-    if ($block{else}) {
-        $self->_error("else block unsupported except with a block helper, "
-                    . "and $name_string is not a block helper");
+    if ($inverted) {
+        ($block{if}, $block{else}) = ($block{else}, $block{if});
+        if (!$block{if}) {
+            $block{if}{body}      = $self->literal('');
+            $block{if}{raw_text}  = $self->literal('');
+            $block{if}{open_tag}  = $block{else}{open_tag};
+            $block{if}{close_tag} = $block{else}{close_tag};
+        }
     }
 
-    my $body      = $block{if}{body};
-    my $raw_text  = $block{if}{raw_text};
-    my $open_tag  = $block{if}{open_tag};
-    my $close_tag = $block{if}{close_tag};
-
-    my $iterations = $inverted
-        ? ($self->make_ternary(
-              $self->call('(is_array)', $name->clone),
-              $self->make_ternary(
-                  $self->call('(is_empty_array)', $name->clone),
-                  $self->call(
-                      '(make_array)',
-                      $self->symbol('(literal)')->clone(id => 1),
-                  ),
-                  $self->call(
-                      '(make_array)',
-                      $self->symbol('(literal)')->clone(id => 0),
-                  ),
-              ),
-              $self->make_ternary(
-                  $name->clone,
-                  $self->call(
-                      '(make_array)',
-                      $self->symbol('(literal)')->clone(id => 0),
-                  ),
-                  $self->call(
-                      '(make_array)',
-                      $self->symbol('(literal)')->clone(id => 1),
-                  ),
-              ),
-           ))
-        : ($self->make_ternary(
-              $self->call('(is_array)', $name->clone),
-              $name->clone,
-              $self->make_ternary(
-                  $name->clone,
-                  $self->call(
-                      '(make_array)',
-                      $self->symbol('(literal)')->clone(id => 1),
-                  ),
-                  $self->call(
-                      '(make_array)',
-                      $self->symbol('(literal)')->clone(id => 0),
-                  ),
-              ),
-           ));
+    my $iterations = $self->make_ternary(
+        $self->call('(is_falsy)', $name->clone),
+        $self->call('(make_array)', $self->literal(1)),
+        $self->make_ternary(
+            $self->call('(is_array)', $name->clone),
+            $name->clone,
+            $self->call('(make_array)', $self->literal(1)),
+        ),
+    );
 
     my $loop_var = $self->symbol('(block)')->clone(arity => 'variable');
 
     my $body_block = [
-        $symbol->clone(
-            arity => 'block',
-            first => ($inverted
-                ? (undef)
-                : ([
-                       $self->call(
-                           '(new_vars_for)',
-                           $self->vars,
-                           $name->clone,
-                           $self->iterator_index,
-                       ),
-                   ])
+        $self->make_ternary(
+            $self->call('(is_falsy)', $name->clone),
+            $symbol->clone(
+                arity  => 'block',
+                first  => undef,
+                second => [ $block{else}{body} ],
             ),
-            second => $body,
+            $symbol->clone(
+                arity  => 'block',
+                first  => [
+                    $self->call(
+                        '(new_vars_for)',
+                        $self->vars,
+                        $name->clone,
+                        $self->iterator_index,
+                    ),
+                ],
+                second => [ $block{if}{body} ],
+            ),
         ),
     ];
 
@@ -524,9 +497,9 @@ sub std_block {
                 '(run_code)',
                 $name->clone,
                 $self->vars,
-                $open_tag->clone,
-                $close_tag->clone,
-                $raw_text->clone,
+                $block{if}{open_tag}->clone,
+                $block{if}{close_tag}->clone,
+                $block{if}{raw_text}->clone,
             ),
         ),
         $self->symbol('(for)')->clone(
@@ -675,6 +648,12 @@ sub check_lambda {
 sub vars {
     my $self = shift;
     return $self->symbol('(vars)')->clone(arity => 'vars');
+}
+
+sub literal {
+    my $self = shift;
+    my ($value) = @_;
+    return $self->symbol('(literal)')->clone(id => $value);
 }
 
 sub iterator_index {
