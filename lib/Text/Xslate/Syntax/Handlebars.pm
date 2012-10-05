@@ -401,7 +401,7 @@ sub std_block {
                 '(run_block_helper)',
                 $self->symbol($name->first->id)->clone,
                 $raw_text->clone,
-                $self->symbol('(vars)')->clone(arity => 'vars'),
+                $self->vars,
                 @{ $name->second },
             ),
         );
@@ -459,7 +459,7 @@ sub std_block {
                 : ([
                        $self->call(
                            '(new_vars_for)',
-                           $self->symbol('(vars)')->clone(arity => 'vars'),
+                           $self->vars,
                            $name->clone,
                            $self->symbol('(iterator)')->clone(
                                arity => 'iterator',
@@ -479,7 +479,7 @@ sub std_block {
             $self->call(
                 '(run_code)',
                 $name->clone,
-                $self->symbol('(vars)')->clone(arity => 'vars'),
+                $self->vars,
                 $open_tag->clone,
                 $close_tag->clone,
                 $raw_text->clone,
@@ -622,10 +622,15 @@ sub check_lambda {
         $self->call(
             '(run_code)',
             $var->clone,
-            $self->symbol('(vars)')->clone(arity => 'vars'),
+            $self->vars,
         ),
         $var,
     );
+}
+
+sub vars {
+    my $self = shift;
+    return $self->symbol('(vars)')->clone(arity => 'vars');
 }
 
 sub _field_to_string {
