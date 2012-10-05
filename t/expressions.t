@@ -137,6 +137,15 @@ render_ok(
 );
 
 render_ok(
+    '{{#thing}}{{{.}}} {{this}}{{/thing}}',
+    {
+        thing => [ "<foo>" ],
+    },
+    "<foo> &lt;foo&gt;",
+    "{{{.}}}"
+);
+
+render_ok(
     '{{foo-bar}}',
     {
         'foo-bar' => "FOOBAR",
