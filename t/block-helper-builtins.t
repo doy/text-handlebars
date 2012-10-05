@@ -59,6 +59,31 @@ RENDERED
 
 render_ok(
     <<'TEMPLATE',
+<ul class="people_list">
+  {{#each people}}
+  <li>{{last}}, {{first}}</li>
+  {{/each}}
+</ul>
+TEMPLATE
+    {
+        people => [
+            { first => "Yehuda", last => "Katz" },
+            { first => "Alan", last => "Johnson" },
+            { first => "Charles", last => "Jolley" },
+        ],
+    },
+    <<'RENDERED',
+<ul class="people_list">
+  <li>Katz, Yehuda</li>
+  <li>Johnson, Alan</li>
+  <li>Jolley, Charles</li>
+</ul>
+RENDERED
+    "each helper"
+);
+
+render_ok(
+    <<'TEMPLATE',
 <div class="entry">
   {{#if author}}
   <h1>{{firstName}} {{lastName}}</h1>
