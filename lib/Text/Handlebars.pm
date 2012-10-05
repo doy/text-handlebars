@@ -82,17 +82,15 @@ sub options {
         },
         if => sub {
             my ($context, $conditional, $options) = @_;
-            if ($conditional) {
-                return $options->{fn}->($context);
-            }
-            return $options->{inverse} ? $options->{inverse}->($context) : '';
+            return $conditional
+                ? $options->{fn}->($context)
+                : $options->{inverse}->($context);
         },
         unless => sub {
             my ($context, $conditional, $options) = @_;
-            unless ($conditional) {
-                return $options->{fn}->($context);
-            }
-            return $options->{inverse} ? $options->{inverse}->($context) : '';
+            return $conditional
+                ? $options->{inverse}->($context)
+                : $options->{fn}->($context);
         },
     },
 
