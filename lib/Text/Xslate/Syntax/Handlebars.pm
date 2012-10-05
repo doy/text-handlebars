@@ -2,13 +2,22 @@ package Text::Xslate::Syntax::Handlebars;
 use Any::Moose;
 
 use Carp 'confess';
-use Text::Xslate::Util qw($DEBUG $STRING neat p);
+use Text::Xslate::Util qw($DEBUG $NUMBER neat p);
 
 extends 'Text::Xslate::Parser';
 
 use constant _DUMP_PROTO => scalar($DEBUG =~ /\b dump=proto \b/xmsi);
 
 my $nl = qr/\x0d?\x0a/;
+
+my $bracket_string = qr/\[ [^\]]* \]/xms;
+my $STRING = qr/(?: $Text::Xslate::Util::STRING | $bracket_string )/xms;
+
+my $single_char = '[.#^/>&;]';
+my $OPERATOR_TOKEN = sprintf(
+    "(?:%s|$single_char)",
+    join('|', map{ quotemeta } qw(..))
+);
 
 sub _build_identity_pattern { qr/[A-Za-z_][A-Za-z0-9_?]*/ }
 sub _build_comment_pattern  { qr/\![^;]*/                }
@@ -27,7 +36,7 @@ sub split_tags {
     my $tag_end   = $self->tag_end;
 
     my $lex_comment = $self->comment_pattern;
-    my $lex_code    = qr/(?: $lex_comment | (?: $STRING | [^'"] ) )/xms;
+    my $lex_code    = qr/(?: $lex_comment | (?: $STRING | [^\['"] ) )/xms;
 
     my @chunks;
 
@@ -220,6 +229,42 @@ sub init_symbols {
 
     $self->prefix('&', 0)->set_nud($self->can('nud_mark_raw'));
     $self->prefix('..', 0)->set_nud($self->can('nud_uplevel'));
+}
+
+# copied from Text::Xslate::Parser, but using different definitions of
+# $STRING and $OPERATOR_TOKEN
+sub tokenize {
+    my($parser) = @_;
+
+    local *_ = \$parser->{input};
+
+    my $comment_rx = $parser->comment_pattern;
+    my $id_rx      = $parser->identity_pattern;
+    my $count      = 0;
+    TRY: {
+        /\G (\s*) /xmsgc;
+        $count += ( $1 =~ tr/\n/\n/);
+        $parser->following_newline( $count );
+
+        if(/\G $comment_rx /xmsgc) {
+            redo TRY; # retry
+        }
+        elsif(/\G ($id_rx)/xmsgc){
+            return [ name => $1 ];
+        }
+        elsif(/\G ($NUMBER | $STRING)/xmsogc){
+            return [ literal => $1 ];
+        }
+        elsif(/\G ($OPERATOR_TOKEN)/xmsogc){
+            return [ operator => $1 ];
+        }
+        elsif(/\G (\S+)/xmsgc) {
+            Carp::confess("Oops: Unexpected token '$1'");
+        }
+        else { # empty
+            return [ special => '(end)' ];
+        }
+    }
 }
 
 sub nud_name {
