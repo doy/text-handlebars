@@ -19,7 +19,7 @@ my $OPERATOR_TOKEN = sprintf(
     join('|', map{ quotemeta } qw(..))
 );
 
-sub _build_identity_pattern { qr/[A-Za-z_][A-Za-z0-9_?]*/ }
+sub _build_identity_pattern { qr/[A-Za-z_][A-Za-z0-9_?-]*/ }
 sub _build_comment_pattern  { qr/\![^;]*/                }
 
 sub _build_line_start { undef }

@@ -123,4 +123,24 @@ render_ok(
     "nested current context"
 );
 
+render_ok(
+    '{{foo-bar}}',
+    {
+        'foo-bar' => "FOOBAR",
+    },
+    'FOOBAR',
+    "- is a valid character"
+);
+
+render_ok(
+    '{{foo.foo-bar}}',
+    {
+        foo => {
+            'foo-bar' => "FOOBAR",
+        },
+    },
+    'FOOBAR',
+    "- is a valid character"
+);
+
 done_testing;
