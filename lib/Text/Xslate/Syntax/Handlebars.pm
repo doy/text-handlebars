@@ -300,7 +300,6 @@ sub nud_name {
 
     my $call = $self->call($name);
 
-    use Data::Dump; ddx($self->token);
     if ($self->token->is_defined) {
         push @{ $call->second }, $self->expression(0);
     }
