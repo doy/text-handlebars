@@ -375,4 +375,98 @@ RENDERED
 );
 }
 
+render_ok(
+    {
+        function => {
+            list => sub {
+                my ($context, $items, $options) = @_;
+
+                if (@$items) {
+                    my $out = '<ul>';
+                    for my $item (@$items) {
+                        $out .= '<li>';
+                        $out .= $options->{fn}->($item);
+                        $out .= '</li>';
+                    }
+                    $out .= '</ul>';
+                    return $out;
+                }
+                else {
+                    return '<p>' . $options->{inverse}->($context) . '</p>';
+                }
+            },
+        },
+    },
+    q[{{#list people}}{{name}}{{^}}<em>Nobody's here</em>{{/list}}],
+    {
+        people => [
+            { name => 'Alan' },
+            { name => 'Yehuda' },
+        ],
+    },
+    q[<ul><li>Alan</li><li>Yehuda</li></ul>],
+    "helper with inverse"
+);
+
+render_ok(
+    {
+        function => {
+            list => sub {
+                my ($context, $items, $options) = @_;
+
+                if (@$items) {
+                    my $out = '<ul>';
+                    for my $item (@$items) {
+                        $out .= '<li>';
+                        $out .= $options->{fn}->($item);
+                        $out .= '</li>';
+                    }
+                    $out .= '</ul>';
+                    return $out;
+                }
+                else {
+                    return '<p>' . $options->{inverse}->($context) . '</p>';
+                }
+            },
+        },
+    },
+    q[{{#list people}}{{name}}{{^}}<em>Nobody's here</em>{{/list}}],
+    {
+        people => [],
+    },
+    q[<p><em>Nobody's here</em></p>],
+    "helper with inverse (empty)"
+);
+
+render_ok(
+    {
+        function => {
+            list => sub {
+                my ($context, $items, $options) = @_;
+
+                if (@$items) {
+                    my $out = '<ul>';
+                    for my $item (@$items) {
+                        $out .= '<li>';
+                        $out .= $options->{fn}->($item);
+                        $out .= '</li>';
+                    }
+                    $out .= '</ul>';
+                    return $out;
+                }
+                else {
+                    return '<p>' . $options->{inverse}->($context) . '</p>';
+                }
+            },
+        },
+    },
+    q[{{#list people}}Hello{{^}}{{message}}{{/list}}],
+    {
+        people  => [],
+        message => "Nobody's here",
+    },
+    q[<p>Nobody&#39;s here</p>],
+    "helper with inverse (inverse has variables)"
+);
+
 done_testing;

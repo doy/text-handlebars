@@ -64,6 +64,10 @@ sub split_tags {
                 $input =~ s/\A\Q$close_tag//
                     or die "Oops!";
 
+                # XXX this is ugly, but i don't know how to get the parsing
+                # right otherwise if we also need to support ^foo
+                $code = 'else' if $code eq '^';
+
                 my @extra;
 
                 my $autochomp = $code =~ m{^[!#^/=>]} || $code eq 'else';

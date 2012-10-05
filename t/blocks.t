@@ -70,4 +70,49 @@ render_ok(
     "empty block"
 );
 
+{ local $TODO = "unimplemented";
+render_ok(
+    '{{#people}}{{name}}{{^}}{{none}}{{/people}}',
+    {
+        none => 'No people',
+    },
+    'No people',
+    "inverted block shorthand"
+);
+
+render_ok(
+    '{{#people}}{{name}}{{^}}{{none}}{{/people}}',
+    {
+        none   => 'No people',
+        people => [],
+    },
+    'No people',
+    "inverted block shorthand (empty array)"
+);
+
+render_ok(
+    <<'TEMPLATE',
+{{#people}}
+{{name}}
+{{^}}
+{{none}}
+{{/people}}
+TEMPLATE
+    {
+        none   => 'No people',
+        people => [
+            'Jesse Luehrs',
+            'Shawn Moore',
+            'Stevan Little',
+        ],
+    },
+    <<'RENDERED',
+Jesse Luehrs
+Shawn Moore
+Stevan Little
+RENDERED
+    "inverted block shorthand (non-empty array)"
+);
+}
+
 done_testing;
