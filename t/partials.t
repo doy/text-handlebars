@@ -22,4 +22,17 @@ render_ok(
 );
 }
 
+render_ok(
+    {
+        path => [ { dude => '{{name}}' } ],
+    },
+    'Dudes: {{> [dude]}}',
+    {
+        name         => 'Jeepers',
+        another_dude => 'Creepers',
+    },
+    'Dudes: Jeepers',
+    "using literals for partials"
+);
+
 done_testing;
