@@ -14,7 +14,7 @@ my $nl = qr/\x0d?\x0a/;
 my $bracket_string = qr/\[ [^\]]* \]/xms;
 my $STRING = qr/(?: $Text::Xslate::Util::STRING | $bracket_string )/xms;
 
-my $single_char = '[.#^/>&;]';
+my $single_char = '[.#^/>&;@]';
 my $OPERATOR_TOKEN = sprintf(
     "(?:%s|$single_char)",
     join('|', map{ quotemeta } qw(..))
@@ -242,6 +242,8 @@ sub init_symbols {
 
     $self->prefix('&', 0)->set_nud($self->can('nud_mark_raw'));
     $self->prefix('..', 0)->set_nud($self->can('nud_uplevel'));
+
+    $self->prefix('@', 0)->set_nud($self->can('nud_iterator'));
 }
 
 # copied from Text::Xslate::Parser, but using different definitions of
@@ -491,7 +493,7 @@ sub std_block {
               ),
            ));
 
-    my $loop_var = $self->symbol('(variable)')->clone(id => '(block)');
+    my $loop_var = $self->symbol('(block)')->clone(arity => 'variable');
 
     my $body_block = [
         $symbol->clone(
@@ -503,11 +505,7 @@ sub std_block {
                            '(new_vars_for)',
                            $self->vars,
                            $name->clone,
-                           $self->symbol('(iterator)')->clone(
-                               arity => 'iterator',
-                               id    => '$~(block)',
-                               first => $loop_var,
-                           ),
+                           $self->iterator_index,
                        ),
                    ])
             ),
@@ -571,6 +569,25 @@ sub std_partial {
             id    => '',
         ),
     );
+}
+
+sub nud_iterator {
+    my $self = shift;
+    my ($symbol) = @_;
+
+    my $token = $self->token;
+    if ($token->arity ne 'variable') {
+        $self->_unexpected('iterator variable', $token);
+    }
+
+    $self->advance;
+
+    if ($token->id eq 'index') {
+        return $self->iterator_index;
+    }
+    else {
+        $self->_error("Unknown iterator variable " . $token->id);
+    }
 }
 
 sub undefined_name {
@@ -673,6 +690,16 @@ sub check_lambda {
 sub vars {
     my $self = shift;
     return $self->symbol('(vars)')->clone(arity => 'vars');
+}
+
+sub iterator_index {
+    my $self = shift;
+
+    return $self->symbol('(iterator)')->clone(
+        arity => 'iterator',
+        id    => '$~(block)',
+        first => $self->symbol('(block)'),
+    ),
 }
 
 sub _field_to_string {

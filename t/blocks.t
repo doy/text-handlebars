@@ -47,4 +47,18 @@ render_ok(
     "nested array of hashes block variable"
 );
 
+render_ok(
+    '{{#goodbyes}}{{@index}}. {{text}}! {{/goodbyes}}cruel {{world}}!',
+    {
+        goodbyes => [
+            { text => 'goodbye' },
+            { text => 'Goodbye' },
+            { text => 'GOODBYE' },
+        ],
+        world => 'world',
+    },
+    '0. goodbye! 1. Goodbye! 2. GOODBYE! cruel world!',
+    "\@index variable"
+);
+
 done_testing;
