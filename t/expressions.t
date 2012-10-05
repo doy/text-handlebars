@@ -136,7 +136,6 @@ render_ok(
     "'this' with paths"
 );
 
-{ local $TODO = "unimplemented";
 render_ok(
     '{{#thing}}{{{.}}} {{{this}}}{{/thing}}',
     {
@@ -145,7 +144,6 @@ render_ok(
     "<foo> <foo>",
     "{{{.}}}"
 );
-}
 
 render_ok(
     '{{foo-bar}}',

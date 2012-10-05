@@ -231,11 +231,17 @@ sub init_symbols {
         $symbol->lbp(10);
     }
 
+    for my $this (qw(. this)) {
+        my $symbol = $self->symbol($this);
+        $symbol->arity('variable');
+        $symbol->id('.');
+        $symbol->lbp(10);
+        $symbol->set_nud($self->can('nud_variable'));
+        $symbol->set_led($self->can('led_variable'));
+    }
+
     $self->infix('.', 256, $self->can('led_dot'));
     $self->infix('/', 256, $self->can('led_dot'));
-
-    $self->symbol('.')->set_nud($self->can('nud_dot'));
-    $self->symbol('this')->set_nud($self->can('nud_dot'));
 
     $self->symbol('#')->set_std($self->can('std_block'));
     $self->symbol('^')->set_std($self->can('std_block'));
@@ -354,18 +360,18 @@ sub led_dot {
     my $self = shift;
     my ($symbol, $left) = @_;
 
+    # XXX hack to make {{{.}}} work, but in general this syntax is ambiguous
+    # and i'm not going to deal with it
+    if ($left->arity eq 'call' && $left->first->id eq 'mark_raw') {
+        push @{ $left->second }, $symbol->nud($self);
+        return $left;
+    }
+
     my $dot = $self->make_field_lookup($left, $self->token, $symbol);
 
     $self->advance;
 
     return $self->check_lambda($dot);
-}
-
-sub nud_dot {
-    my $self = shift;
-    my ($symbol) = @_;
-
-    return $symbol->clone(arity => 'variable', id => '.');
 }
 
 sub std_block {
