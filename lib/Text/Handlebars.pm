@@ -35,8 +35,8 @@ sub default_functions {
                     die "no iterator cycle provided?"
                         unless defined $i;
 
-                    $value = ref($value->[$i])
-                        ? $value->[$i]
+                    $value = ref($value->[$i]) && ref($value->[$i]) eq 'HASH'
+                        ? { '.' => $value->[$i], %{ $value->[$i] } }
                         : { '.' => $value->[$i] };
 
                     $ref = ref($value);

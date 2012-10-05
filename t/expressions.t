@@ -124,6 +124,19 @@ render_ok(
 );
 
 render_ok(
+    '{{#hellos}}{{this/text}}{{/hellos}}',
+    {
+        hellos => [
+            { text => 'hello' },
+            { text => 'Hello' },
+            { text => 'HELLO' },
+        ],
+    },
+    'helloHelloHELLO',
+    "'this' with paths"
+);
+
+render_ok(
     '{{foo-bar}}',
     {
         'foo-bar' => "FOOBAR",
