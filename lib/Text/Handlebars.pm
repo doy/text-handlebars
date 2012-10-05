@@ -72,13 +72,7 @@ sub options {
         },
         each => sub {
             my ($context, $list, $options) = @_;
-
-            my $ret = '';
-            for my $new_context (@$list) {
-                $ret .= $options->{fn}->($new_context);
-            }
-
-            return $ret;
+            return join '', map { $options->{fn}->($_) } @$list;
         },
         if => sub {
             my ($context, $conditional, $options) = @_;
