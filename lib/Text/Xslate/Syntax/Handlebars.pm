@@ -231,7 +231,6 @@ sub init_symbols {
 
     for my $type (qw(name variable literal)) {
         my $symbol = $self->symbol("($type)");
-        $symbol->set_led($self->can("led_$type"));
         $symbol->lbp(10);
     }
 
@@ -241,7 +240,6 @@ sub init_symbols {
         $symbol->id('.');
         $symbol->lbp(10);
         $symbol->set_nud($self->can('nud_variable'));
-        $symbol->set_led($self->can('led_variable'));
     }
 
     for my $field_access (qw(. /)) {
@@ -317,12 +315,6 @@ sub nud_name {
     return $call;
 }
 
-sub led_name {
-    my $self = shift;
-
-    $self->_unexpected("a variable or literal", $self->token);
-}
-
 sub nud_variable {
     my $self = shift;
     my ($symbol) = @_;
@@ -330,47 +322,6 @@ sub nud_variable {
     my $var = $self->SUPER::nud_variable(@_);
 
     return $self->check_lambda($var);
-}
-
-sub led_variable {
-    my $self = shift;
-    my ($symbol, $left) = @_;
-
-    if ($left->arity ne 'call') {
-        $self->_error("Unexpected variable found", $symbol);
-    }
-
-    my $var = $symbol;
-    my $rbp = $var->lbp - 1; # right-associative
-
-    # was this actually supposed to be an expression?
-    # for instance, {{foo bar baz.quux blorg}}
-    # if we get here for baz, we need to make sure we end up with all of
-    # baz.quux
-    # this basically just reimplements $self->expression, except starting
-    # partway through
-    while ($rbp < $self->token->lbp) {
-        my $token = $self->token;
-        $self->advance;
-        $var = $token->led($self, $var);
-    }
-
-    push @{ $left->second }, $self->check_lambda($var);
-
-    return $left;
-}
-
-sub led_literal {
-    my $self = shift;
-    my ($symbol, $left) = @_;
-
-    if ($left->arity ne 'call') {
-        $self->_error("Unexpected literal found", $symbol);
-    }
-
-    push @{ $left->second }, $symbol;
-
-    return $left;
 }
 
 sub led_dot {
@@ -585,7 +536,6 @@ sub define_function {
     for my $name (@names) {
         my $symbol = $self->symbol($name);
         $symbol->set_nud($self->can('nud_name'));
-        $symbol->set_led($self->can('led_name'));
         $symbol->lbp(10);
     }
 
@@ -630,6 +580,31 @@ sub is_valid_field {
     return 1 if $field->id eq '..';
 
     return;
+}
+
+sub expression {
+    my $self = shift;
+    my ($rbp) = @_;
+
+    my $token = $self->token;
+    $self->advance;
+    my $left = $token->nud($self);
+
+    while ($rbp < $self->token->lbp) {
+        $token = $self->token;
+        if ($token->has_led) {
+            $self->advance;
+            $left = $token->led($self, $left);
+        }
+        else {
+            if ($left->arity ne 'call') {
+                $self->_error("Unexpected " . $token->arity, $left);
+            }
+            push @{ $left->second }, $self->expression($token->lbp);
+        }
+    }
+
+    return $left;
 }
 
 sub make_field_lookup {
