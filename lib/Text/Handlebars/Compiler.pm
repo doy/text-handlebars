@@ -23,6 +23,52 @@ sub _generate_block {
     return @compiled;
 }
 
+sub _generate_key {
+    my $self = shift;
+    my ($node) = @_;
+
+    my $var = $node->clone(arity => 'variable');
+
+    return $self->compile_ast($self->_check_lambda($var));
+}
+
+sub _generate_key_field {
+    my $self = shift;
+    my ($node) = @_;
+
+    my $field = $node->clone(arity => 'field');
+
+    return $self->compile_ast($self->_check_lambda($field));
+}
+
+sub _check_lambda {
+    my $self = shift;
+    my ($var) = @_;
+
+    my $parser = $self->parser;
+
+    my $is_code = $parser->symbol('(name)')->clone(
+        arity => 'name',
+        id    => '(is_code)',
+        line  => $var->line,
+    );
+    my $run_code = $parser->symbol('(name)')->clone(
+        arity => 'name',
+        id    => '(run_code)',
+        line  => $var->line,
+    );
+
+    return $parser->make_ternary(
+        $parser->call($is_code, $var->clone),
+        $parser->call(
+            $run_code,
+            $var->clone,
+            $parser->vars,
+        ),
+        $var,
+    );
+}
+
 sub _generate_include {
     my $self = shift;
     my ($node) = @_;

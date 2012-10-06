@@ -229,17 +229,19 @@ sub preprocess {
 sub init_symbols {
     my $self = shift;
 
-    for my $type (qw(name variable literal)) {
+    for my $type (qw(name key literal)) {
         my $symbol = $self->symbol("($type)");
+        $symbol->arity($type);
+        $symbol->set_nud($self->can("nud_$type"));
         $symbol->lbp(10);
     }
 
     for my $this (qw(. this)) {
         my $symbol = $self->symbol($this);
-        $symbol->arity('variable');
+        $symbol->arity('key');
         $symbol->id('.');
         $symbol->lbp(10);
-        $symbol->set_nud($self->can('nud_variable'));
+        $symbol->set_nud($self->can('nud_key'));
     }
 
     for my $field_access (qw(. /)) {
@@ -315,13 +317,11 @@ sub nud_name {
     return $call;
 }
 
-sub nud_variable {
+sub nud_key {
     my $self = shift;
     my ($symbol) = @_;
 
-    my $var = $self->SUPER::nud_variable(@_);
-
-    return $self->check_lambda($var);
+    return $symbol->clone(arity => 'key');
 }
 
 sub led_dot {
@@ -339,7 +339,7 @@ sub led_dot {
 
     $self->advance;
 
-    return $self->check_lambda($dot);
+    return $dot;
 }
 
 sub std_block {
@@ -349,12 +349,8 @@ sub std_block {
     my $inverted = $symbol->id eq '^';
 
     my $name = $self->expression(0);
-    # variable lookups are parsed into a ternary expression, hence arity 'if'
-    if ($name->arity eq 'if') {
-        $name = $name->third;
-    }
 
-    if ($name->arity ne 'variable' && $name->arity ne 'field' && $name->arity ne 'call') {
+    if ($name->arity ne 'key' && $name->arity ne 'key_field' && $name->arity ne 'call') {
         $self->_unexpected("opening block name", $self->token);
     }
     my $name_string = $self->_field_to_string($name);
@@ -389,11 +385,8 @@ sub std_block {
     $self->advance;
 
     my $closing_name = $self->expression(0);
-    if ($closing_name->arity eq 'if') {
-        $closing_name = $closing_name->third;
-    }
 
-    if ($closing_name->arity ne 'variable' && $closing_name->arity ne 'field' && $closing_name->arity ne 'call') {
+    if ($closing_name->arity ne 'key' && $closing_name->arity ne 'key_field' && $closing_name->arity ne 'call') {
         $self->_unexpected("closing block name", $self->token);
     }
     my $closing_name_string = $self->_field_to_string($closing_name);
@@ -463,12 +456,13 @@ sub std_block {
         ),
     ];
 
+    my $var = $name->clone(arity => 'variable');
     return $self->make_ternary(
-        $self->call('(is_code)', $name->clone),
+        $self->call('(is_code)', $var->clone),
         $self->print_raw(
             $self->call(
                 '(run_code)',
-                $name->clone,
+                $var->clone,
                 $self->vars,
                 $block{if}{open_tag}->clone,
                 $block{if}{close_tag}->clone,
@@ -525,7 +519,7 @@ sub undefined_name {
     my $self = shift;
     my ($name) = @_;
 
-    return $self->symbol('(variable)')->clone(id => $name);
+    return $self->symbol('(key)')->clone(id => $name);
 }
 
 sub define_function {
@@ -574,8 +568,8 @@ sub is_valid_field {
 
     # allow foo.[10]
     return 1 if $field->arity eq 'literal';
-    # undefined symbols are all treated as variables - see undefined_name
-    return 1 if $field->arity eq 'variable';
+    # undefined symbols are all treated as keys - see undefined_name
+    return 1 if $field->arity eq 'key';
     # allow ../../foo
     return 1 if $field->id eq '..';
 
@@ -618,7 +612,7 @@ sub make_field_lookup {
     $dot ||= $self->symbol('.');
 
     return $dot->clone(
-        arity  => 'field',
+        arity  => 'key_field',
         first  => $var,
         second => $field->clone(arity => 'literal'),
     );
@@ -638,21 +632,6 @@ sub make_ternary {
 sub print_raw {
     my $self = shift;
     return $self->print(@_)->clone(id => 'print_raw');
-}
-
-sub check_lambda {
-    my $self = shift;
-    my ($var) = @_;
-
-    return $self->make_ternary(
-        $self->call('(is_code)', $var->clone),
-        $self->call(
-            '(run_code)',
-            $var->clone,
-            $self->vars,
-        ),
-        $var,
-    );
 }
 
 sub vars {
@@ -680,11 +659,7 @@ sub _field_to_string {
     my $self = shift;
     my ($symbol) = @_;
 
-    # undo check_lambda
-    return $self->_field_to_string($symbol->third)
-        if $symbol->arity eq 'if';
-
-    # name and variable can just be returned
+    # name and key can just be returned
     return $symbol->id
         unless $symbol->arity eq 'field';
 
