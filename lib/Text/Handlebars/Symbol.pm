@@ -8,14 +8,6 @@ has is_helper => (
     isa => 'Bool',
 );
 
-has fourth => (
-    is => 'rw',
-);
-
-has context => (
-    is => 'rw',
-);
-
 __PACKAGE__->meta->make_immutable;
 no Any::Moose;
 
