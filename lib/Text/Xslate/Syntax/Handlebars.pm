@@ -431,18 +431,18 @@ sub std_block {
         ),
     );
 
-    my $loop_var = $self->symbol('(block)')->clone(arity => 'variable');
+    my $loop_var = $self->symbol('(loop_var)')->clone(arity => 'variable');
 
     my $body_block = [
         $self->make_ternary(
             $self->call('(is_falsy)', $name->clone),
             $symbol->clone(
-                arity  => 'block',
+                arity  => 'block_body',
                 first  => undef,
                 second => [ $block{else}{body} ],
             ),
             $symbol->clone(
-                arity  => 'block',
+                arity  => 'block_body',
                 first  => [
                     $self->call(
                         '(new_vars_for)',
@@ -650,8 +650,8 @@ sub iterator_index {
 
     return $self->symbol('(iterator)')->clone(
         arity => 'iterator',
-        id    => '$~(block)',
-        first => $self->symbol('(block)'),
+        id    => '$~(loop_var)',
+        first => $self->symbol('(loop_var)')->clone,
     ),
 }
 

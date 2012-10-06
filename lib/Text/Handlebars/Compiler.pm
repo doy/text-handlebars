@@ -11,7 +11,7 @@ has '+syntax' => (
 
 sub define_helper { shift->parser->define_helper(@_) }
 
-sub _generate_block {
+sub _generate_block_body {
     my $self = shift;
     my ($node) = @_;
 
