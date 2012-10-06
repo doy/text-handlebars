@@ -384,6 +384,16 @@ sub std_block {
     $block{$context}{close_tag} = $self->token;
     $self->advance;
 
+    if ($inverted) {
+        ($block{if}, $block{else}) = ($block{else}, $block{if});
+        if (!$block{if}) {
+            $block{if}{body}      = $self->literal('');
+            $block{if}{raw_text}  = $self->literal('');
+            $block{if}{open_tag}  = $block{else}{open_tag};
+            $block{if}{close_tag} = $block{else}{close_tag};
+        }
+    }
+
     my $closing_name = $self->expression(0);
 
     if ($closing_name->arity ne 'key' && $closing_name->arity ne 'key_field' && $closing_name->arity ne 'call') {
@@ -409,16 +419,6 @@ sub std_block {
                 @{ $name->second },
             ),
         );
-    }
-
-    if ($inverted) {
-        ($block{if}, $block{else}) = ($block{else}, $block{if});
-        if (!$block{if}) {
-            $block{if}{body}      = $self->literal('');
-            $block{if}{raw_text}  = $self->literal('');
-            $block{if}{open_tag}  = $block{else}{open_tag};
-            $block{if}{close_tag} = $block{else}{close_tag};
-        }
     }
 
     my $iterations = $self->make_ternary(
