@@ -79,6 +79,37 @@ sub _generate_include {
     return $self->SUPER::_generate_include($node);
 }
 
+sub _generate_call {
+    my $self = shift;
+    my ($node) = @_;
+
+    if ($node->is_helper) {
+        my @args;
+        my @hash;
+        for my $arg (@{ $node->second }) {
+            if ($arg->arity eq 'pair') {
+                push @hash, $arg->first, $arg->second;
+            }
+            else {
+                push @args, $arg;
+            }
+        }
+
+        my $parser = $self->parser;
+
+        my $make_hash = $parser->symbol('(name)')->clone(
+            arity => 'name',
+            id    => '(make_hash)',
+            line  => $node->line,
+        );
+
+        push @{ $node->first->second }, $parser->call($make_hash, @hash);
+        $node->second(\@args);
+    }
+
+    return $self->SUPER::_generate_call($node);
+}
+
 __PACKAGE__->meta->make_immutable;
 no Any::Moose;
 

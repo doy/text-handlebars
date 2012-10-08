@@ -55,6 +55,10 @@ sub default_functions {
             my ($length) = @_;
             return [(undef) x $length];
         },
+        '(make_hash)' => sub {
+            my (%hash) = @_;
+            return \%hash;
+        },
         '(is_code)' => sub {
             my ($val) = @_;
             return ref($val) && ref($val) eq 'CODE';
@@ -122,7 +126,7 @@ sub _register_builtin_methods {
         return 0;
     };
     $funcs->{'(make_block_helper)'} = sub {
-        my ($code, $raw_text, $else_raw_text) = @_;
+        my ($code, $raw_text, $else_raw_text, $hash) = @_;
 
         my $options = {};
         $options->{fn} = sub {
@@ -133,6 +137,7 @@ sub _register_builtin_methods {
             my ($new_vars) = @_;
             return $weakself->render_string($else_raw_text, $new_vars);
         };
+        $options->{hash} = $hash;
 
         return sub { $code->(@_, $options); };
     };

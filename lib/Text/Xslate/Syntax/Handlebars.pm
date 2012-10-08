@@ -16,7 +16,7 @@ my $nl = qr/\x0d?\x0a/;
 my $bracket_string = qr/\[ [^\]]* \]/xms;
 my $STRING = qr/(?: $Text::Xslate::Util::STRING | $bracket_string )/xms;
 
-my $single_char = '[.#^/>&;]';
+my $single_char = '[.#^/>&;=]';
 my $OPERATOR_TOKEN = sprintf(
     "(?:%s|$single_char)",
     join('|', map{ quotemeta } qw(..))
@@ -260,6 +260,8 @@ sub init_symbols {
 
     $self->symbol('&')->set_nud($self->can('nud_mark_raw'));
     $self->symbol('..')->set_nud($self->can('nud_uplevel'));
+
+    $self->infix('=', 20, $self->can('led_equals'));
 }
 
 # copied from Text::Xslate::Parser, but using different definitions of
@@ -417,6 +419,7 @@ sub std_block {
                     ? $block{else}{raw_text}->clone
                     : $self->literal('')),
             ),
+            is_helper => 1,
         );
         return $self->print_raw($name);
     }
@@ -512,6 +515,19 @@ sub std_partial {
             arity => 'literal',
             id    => '',
         ),
+    );
+}
+
+sub led_equals {
+    my $self = shift;
+    my ($symbol, $left) = @_;
+
+    my $right = $self->expression($symbol->lbp);
+
+    return $symbol->clone(
+        arity  => 'pair',
+        first  => $left->clone(arity => 'literal'),
+        second => $right,
     );
 }
 

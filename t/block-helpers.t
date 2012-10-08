@@ -287,26 +287,25 @@ RENDERED
     "if/else helper (false)"
 );
 
-{ local $TODO = "unimplemented"; local $SIG{__WARN__} = sub { };
 render_ok(
     {
         helpers => {
             list => sub {
                 my ($context, $items, $options) = @_;
 
-                my $attrs = join ' ', map { $_ => $options->{hash}{$_} }
+                my $attrs = join ' ', map { "$_=\"$options->{hash}{$_}\"" }
                                           sort keys %{ $options->{hash} };
 
                 return "<ul $attrs>"
                      . join("\n", map {
                            "<li>" . $options->{fn}->($_) . "</li>"
                        } @$items)
-                     . "</ul>";
+                     . "</ul>\n";
             },
         },
     },
     <<'TEMPLATE',
-{{list nav id="nav-bar" class="top"}}
+{{#list nav id="nav-bar" class="top"}}
   <a href="{{url}}">{{title}}</a>
 {{/list}}
 TEMPLATE
@@ -325,12 +324,13 @@ TEMPLATE
     <<'RENDERED',
 <ul class="top" id="nav-bar"><li>  <a href="http://www.yehudakatz.com">Katz Got Your Tongue</a>
 </li>
-  <a href="http://www.sproutcore.com/block">SproutCore Blog</a>
+<li>  <a href="http://www.sproutcore.com/block">SproutCore Blog</a>
 </li></ul>
 RENDERED
     "helper arguments"
 );
 
+{ local $TODO = "unimplemented"; local $SIG{__WARN__} = sub { };
 # XXX this is almost certainly not what the api should be like, but i don't
 # understand the purpose for this feature well enough to come up with anything
 # more reasonable. feedback welcome!
