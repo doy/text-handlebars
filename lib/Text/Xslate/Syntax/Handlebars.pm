@@ -405,74 +405,12 @@ sub std_block {
 
     $self->advance(';');
 
-    if ($name->arity eq 'call') {
-        $name = $name->clone(
-            first => $self->call(
-                '(make_block_helper)',
-                $name->first,
-                $block{if}{raw_text}->clone,
-                ($block{else}
-                    ? $block{else}{raw_text}->clone
-                    : $self->literal('')),
-            ),
-        );
-        return $self->print_raw($name);
-    }
-
-    my $iterations = $self->make_ternary(
-        $self->call('(is_falsy)', $name->clone),
-        $self->call('(make_array)', $self->literal(1)),
-        $self->make_ternary(
-            $self->call('(is_array)', $name->clone),
-            $name->clone,
-            $self->call('(make_array)', $self->literal(1)),
-        ),
-    );
-
-    my $loop_var = $self->symbol('(loop_var)')->clone(arity => 'variable');
-
-    my $body_block = [
-        $self->make_ternary(
-            $self->call('(is_falsy)', $name->clone),
-            $symbol->clone(
-                arity  => 'block_body',
-                first  => undef,
-                second => [ $block{else}{body} ],
-            ),
-            $symbol->clone(
-                arity  => 'block_body',
-                first  => [
-                    $self->call(
-                        '(new_vars_for)',
-                        $self->vars,
-                        $name->clone,
-                        $self->iterator_index,
-                    ),
-                ],
-                second => [ $block{if}{body} ],
-            ),
-        ),
-    ];
-
-    my $var = $name->clone(arity => 'variable');
     return $self->print_raw(
-        $self->make_ternary(
-            $self->call('(is_code)', $var->clone),
-            $self->call(
-                '(run_code)',
-                $var->clone,
-                $self->vars,
-                $block{if}{open_tag}->clone,
-                $block{if}{close_tag}->clone,
-                $block{if}{raw_text}->clone,
-            ),
-            $self->symbol('(for)')->clone(
-                arity  => 'for',
-                first  => $iterations,
-                second => [$loop_var],
-                third  => $body_block,
-            ),
-        )
+        $name->clone(
+            arity  => 'block',
+            first  => $name,
+            second => \%block,
+        ),
     );
 }
 
@@ -629,41 +567,15 @@ sub make_field_lookup {
     );
 }
 
-sub make_ternary {
-    my $self = shift;
-    my ($if, $then, $else) = @_;
-    return $self->symbol('?:')->clone(
-        arity  => 'if',
-        first  => $if,
-        second => $then,
-        third  => $else,
-    );
-}
-
 sub print_raw {
     my $self = shift;
     return $self->print(@_)->clone(id => 'print_raw');
-}
-
-sub vars {
-    my $self = shift;
-    return $self->symbol('(vars)')->clone(arity => 'vars');
 }
 
 sub literal {
     my $self = shift;
     my ($value) = @_;
     return $self->symbol('(literal)')->clone(id => $value);
-}
-
-sub iterator_index {
-    my $self = shift;
-
-    return $self->symbol('(iterator)')->clone(
-        arity => 'iterator',
-        id    => '$~(loop_var)',
-        first => $self->symbol('(loop_var)')->clone,
-    ),
 }
 
 sub _field_to_string {

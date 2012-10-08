@@ -29,7 +29,7 @@ sub _generate_key {
 
     my $var = $node->clone(arity => 'variable');
 
-    return $self->compile_ast($self->_check_lambda($var));
+    return $self->compile_ast($self->check_lambda($var));
 }
 
 sub _generate_key_field {
@@ -38,35 +38,7 @@ sub _generate_key_field {
 
     my $field = $node->clone(arity => 'field');
 
-    return $self->compile_ast($self->_check_lambda($field));
-}
-
-sub _check_lambda {
-    my $self = shift;
-    my ($var) = @_;
-
-    my $parser = $self->parser;
-
-    my $is_code = $parser->symbol('(name)')->clone(
-        arity => 'name',
-        id    => '(is_code)',
-        line  => $var->line,
-    );
-    my $run_code = $parser->symbol('(name)')->clone(
-        arity => 'name',
-        id    => '(run_code)',
-        line  => $var->line,
-    );
-
-    return $parser->make_ternary(
-        $parser->call($is_code, $var->clone),
-        $parser->call(
-            $run_code,
-            $var->clone,
-            $parser->vars,
-        ),
-        $var,
-    );
+    return $self->compile_ast($self->check_lambda($field));
 }
 
 sub _generate_include {
@@ -95,17 +67,9 @@ sub _generate_call {
             }
         }
 
-        my $parser = $self->parser;
+        my $hash = $self->call($node, '(make_hash)', @hash);
 
-        my $make_hash = $parser->symbol('(name)')->clone(
-            arity => 'name',
-            id    => '(make_hash)',
-            line  => $node->line,
-        );
-
-        my $hash = $parser->call($make_hash, @hash);
-
-        unshift @args, $parser->vars;
+        unshift @args, $self->vars;
 
         if ($node->first->arity eq 'call' && $node->first->first->id eq '(make_block_helper)') {
             push @{ $node->first->second }, $hash;
@@ -123,17 +87,9 @@ sub _generate_partial {
     my $self = shift;
     my ($node) = @_;
 
-    my $parser = $self->parser;
-
-    my $find_file = $parser->symbol('(name)')->clone(
-        arity => 'name',
-        id    => '(find_file)',
-        line  => $node->line,
-    );
-
     return $self->compile_ast(
-        $parser->make_ternary(
-            $parser->call($find_file, $node->first->clone),
+        $self->make_ternary(
+            $self->call($node, '(find_file)', $node->first->clone),
             $node->clone(
                 arity => 'include',
                 id    => 'include',
@@ -155,6 +111,138 @@ sub _generate_for {
     return (
         @opcodes,
         $self->opcode('nil'),
+    );
+}
+
+sub _generate_block {
+    my $self = shift;
+    my ($node) = @_;
+
+    my $name = $node->first;
+    my %block = %{ $node->second };
+
+    if ($name->arity eq 'call') {
+        return $self->compile_ast(
+            $name->clone(
+                first => $self->call(
+                    $node,
+                    '(make_block_helper)',
+                    $name->first,
+                    $block{if}{raw_text}->clone,
+                    ($block{else}
+                        ? $block{else}{raw_text}->clone
+                        : $self->parser->literal('')),
+                ),
+            ),
+        );
+    }
+
+    my $iterations = $self->make_ternary(
+        $self->call($node, '(is_falsy)', $name->clone),
+        $self->call($node, '(make_array)', $self->parser->literal(1)),
+        $self->make_ternary(
+            $self->call($node, '(is_array)', $name->clone),
+            $name->clone,
+            $self->call($node, '(make_array)', $self->parser->literal(1)),
+        ),
+    );
+
+    my $loop_var = $self->parser->symbol('(loop_var)')->clone(arity => 'variable');
+
+    my $body_block = [
+        $self->make_ternary(
+            $self->call($node, '(is_falsy)', $name->clone),
+            $name->clone(
+                arity  => 'block_body',
+                first  => undef,
+                second => [ $block{else}{body} ],
+            ),
+            $name->clone(
+                arity  => 'block_body',
+                first  => [
+                    $self->call(
+                        $node,
+                        '(new_vars_for)',
+                        $self->vars,
+                        $name->clone,
+                        $self->iterator_index,
+                    ),
+                ],
+                second => [ $block{if}{body} ],
+            ),
+        ),
+    ];
+
+    my $var = $name->clone(arity => 'variable');
+    return $self->compile_ast(
+        $self->make_ternary(
+            $self->call($node, '(is_code)', $var->clone),
+            $self->call(
+                $node,
+                '(run_code)',
+                $var->clone,
+                $self->vars,
+                $block{if}{open_tag}->clone,
+                $block{if}{close_tag}->clone,
+                $block{if}{raw_text}->clone,
+            ),
+            $self->parser->symbol('(for)')->clone(
+                arity  => 'for',
+                first  => $iterations,
+                second => [$loop_var],
+                third  => $body_block,
+            ),
+        ),
+    );
+}
+
+sub call {
+    my $self = shift;
+    my ($node, $name, @args) = @_;
+
+    my $code = $self->parser->symbol('(name)')->clone(
+        arity => 'name',
+        id    => $name,
+        line  => $node->line,
+    );
+
+    return $self->parser->call($code, @args);
+}
+
+sub make_ternary {
+    my $self = shift;
+    my ($if, $then, $else) = @_;
+    return $self->parser->symbol('?:')->clone(
+        arity  => 'if',
+        first  => $if,
+        second => $then,
+        third  => $else,
+    );
+}
+
+sub vars {
+    my $self = shift;
+    return $self->parser->symbol('(vars)')->clone(arity => 'vars');
+}
+
+sub iterator_index {
+    my $self = shift;
+
+    return $self->parser->symbol('(iterator)')->clone(
+        arity => 'iterator',
+        id    => '$~(loop_var)',
+        first => $self->parser->symbol('(loop_var)')->clone,
+    ),
+}
+
+sub check_lambda {
+    my $self = shift;
+    my ($var) = @_;
+
+    return $self->make_ternary(
+        $self->call($var, '(is_code)', $var->clone),
+        $self->call($var, '(run_code)', $var->clone, $self->vars),
+        $var,
     );
 }
 
