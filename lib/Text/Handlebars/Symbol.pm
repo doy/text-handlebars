@@ -8,6 +8,11 @@ has is_helper => (
     isa => 'Bool',
 );
 
+has is_block_helper => (
+    is  => 'rw',
+    isa => 'Bool',
+);
+
 __PACKAGE__->meta->make_immutable;
 no Any::Moose;
 

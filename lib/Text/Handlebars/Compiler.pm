@@ -61,7 +61,7 @@ sub _generate_call {
 
         unshift @args, $self->vars;
 
-        if ($node->first->arity eq 'call' && $node->first->first->id eq '(make_block_helper)') {
+        if ($node->is_block_helper) {
             push @{ $node->first->second }, $hash;
             $node->second(\@args);
         }
@@ -120,6 +120,7 @@ sub _generate_block {
                         ? $block{else}{raw_text}->clone
                         : $self->parser->literal('')),
                 ),
+                is_block_helper => 1,
             ),
         );
     }
