@@ -121,8 +121,8 @@ sub _register_builtin_methods {
         return 1 if try { $weakself->find_file($filename); 1 };
         return 0;
     };
-    $funcs->{'(run_block_helper)'} = sub {
-        my ($code, $raw_text, $else_raw_text, $vars, @args) = @_;
+    $funcs->{'(make_block_helper)'} = sub {
+        my ($code, $raw_text, $else_raw_text) = @_;
 
         my $options = {};
         $options->{fn} = sub {
@@ -134,7 +134,7 @@ sub _register_builtin_methods {
             return $weakself->render_string($else_raw_text, $new_vars);
         };
 
-        return $code->($vars, @args, $options);
+        return sub { $code->(@_, $options); };
     };
 
     for my $helper (keys %{ $self->{helpers} }) {

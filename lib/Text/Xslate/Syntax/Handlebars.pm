@@ -408,17 +408,17 @@ sub std_block {
     $self->advance(';');
 
     if ($name->arity eq 'call') {
-        return $self->print_raw(
-            $self->call(
-                '(run_block_helper)',
-                $self->symbol($name->first->id)->clone,
+        $name = $name->clone(
+            first => $self->call(
+                '(make_block_helper)',
+                $name->first,
                 $block{if}{raw_text}->clone,
                 ($block{else}
                     ? $block{else}{raw_text}->clone
                     : $self->literal('')),
-                @{ $name->second },
             ),
         );
+        return $self->print_raw($name);
     }
 
     my $iterations = $self->make_ternary(
