@@ -103,8 +103,15 @@ sub _generate_call {
             line  => $node->line,
         );
 
-        push @{ $node->first->second }, $parser->call($make_hash, @hash);
-        $node->second(\@args);
+        my $hash = $parser->call($make_hash, @hash);
+
+        if ($node->first->arity eq 'call' && $node->first->first->id eq '(make_block_helper)') {
+            push @{ $node->first->second }, $hash;
+            $node->second(\@args);
+        }
+        else {
+            $node->second([ @args, $hash ]);
+        }
     }
 
     return $self->SUPER::_generate_call($node);

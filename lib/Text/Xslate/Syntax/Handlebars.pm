@@ -309,6 +309,7 @@ sub nud_name {
     my $call = $self->call($name);
 
     if ($name->is_helper) {
+        $call->is_helper(1);
         push @{ $call->second }, $self->vars;
     }
 
@@ -419,7 +420,6 @@ sub std_block {
                     ? $block{else}{raw_text}->clone
                     : $self->literal('')),
             ),
-            is_helper => 1,
         );
         return $self->print_raw($name);
     }

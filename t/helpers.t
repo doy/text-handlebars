@@ -60,7 +60,6 @@ RENDERED
     "helpers with literal args"
 );
 
-{ local $TODO = "unimplemented";
 render_ok(
     {
         helpers => {
@@ -91,6 +90,5 @@ TEMPLATE
 RENDERED
     "helpers with literal args"
 );
-}
 
 done_testing;
