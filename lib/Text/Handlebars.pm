@@ -120,9 +120,9 @@ sub _register_builtin_methods {
     };
     $funcs->{'(find_file)'} = sub {
         my ($filename) = @_;
-        return 1 if try { $weakself->find_file($filename); 1 };
+        return $filename if try { $weakself->find_file($filename); 1 };
         $filename .= $weakself->{suffix};
-        return 1 if try { $weakself->find_file($filename); 1 };
+        return $filename if try { $weakself->find_file($filename); 1 };
         return 0;
     };
     $funcs->{'(make_block_helper)'} = sub {

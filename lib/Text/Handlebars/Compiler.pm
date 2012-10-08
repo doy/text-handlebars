@@ -41,16 +41,6 @@ sub _generate_key_field {
     return $self->compile_ast($self->check_lambda($field));
 }
 
-sub _generate_include {
-    my $self = shift;
-    my ($node) = @_;
-
-    my $file = $node->first;
-    $file->id($file->id . $self->engine->{suffix})
-        unless try { $self->engine->find_file($file->id); 1 };
-    return $self->SUPER::_generate_include($node);
-}
-
 sub _generate_call {
     my $self = shift;
     my ($node) = @_;
@@ -93,12 +83,9 @@ sub _generate_partial {
             $node->clone(
                 arity => 'include',
                 id    => 'include',
-                first => $node->first,
+                first => $self->call($node, '(find_file)', $node->first),
             ),
-            $node->clone(
-                arity => 'literal',
-                id    => '',
-            ),
+            $self->parser->literal(''),
         ),
     );
 }
