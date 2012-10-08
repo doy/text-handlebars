@@ -12,6 +12,6 @@ MANIFEST.bak
 *.sw[po]
 .DS_Store
 .build
-Text-Xslate-Syntax-Handlebars-*
+Text-Handlebars-*
 *.bs
 *.o
