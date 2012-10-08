@@ -128,7 +128,7 @@ sub _generate_block {
         $self->call($node, '(is_falsy)', $name->clone),
         $self->call($node, '(make_array)', $self->parser->literal(1)),
         $self->make_ternary(
-            $self->call($node, '(is_array)', $name->clone),
+            $self->call($node, 'is_array_ref', $name->clone),
             $name->clone,
             $self->call($node, '(make_array)', $self->parser->literal(1)),
         ),
