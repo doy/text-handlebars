@@ -1,11 +1,97 @@
 package Text::Handlebars;
 use strict;
 use warnings;
+# ABSTRACT: http://handlebarsjs.com/ for Text::Xslate
 
 use base 'Text::Xslate';
 
 use Scalar::Util 'weaken';
 use Try::Tiny;
+
+=head1 SYNOPSIS
+
+  use Text::Handlebars;
+
+  my $handlebars = Text::Handlebars->new(
+      helpers => {
+          fullName => sub {
+              my ($context, $person) = @_;
+              return $person->{firstName}
+                   . ' '
+                   . $person->{lastName};
+          },
+      },
+  );
+
+  my $vars = {
+      author   => { firstName => 'Alan', lastName => 'Johnson' },
+      body     => "I Love Handlebars",
+      comments => [
+          author => { firstName => 'Yehuda', lastName => 'Katz' },
+          body   => "Me too!",
+      ],
+  };
+
+  say $handlebars->render_string(<<'TEMPLATE', $vars);
+  <div class="post">
+    <h1>By {{fullName author}}</h1>
+    <div class="body">{{body}}</div>
+
+    <h1>Comments</h1>
+
+    {{#each comments}}
+    <h2>By {{fullName author}}</h2>
+    <div class="body">{{body}}</div>
+    {{/each}}
+  </div>
+  TEMPLATE
+
+produces
+
+  <div class="post">
+    <h1>By Alan Johnson</h1>
+    <div class="body">I Love Handlebars</div>
+
+    <h1>Comments</h1>
+
+    <h2>By Yehuda Katz</h2>
+    <div class="body">Me Too!</div>
+  </div>
+
+=head1 DESCRIPTION
+
+This module subclasses L<Text::Xslate> to provide a parser for
+L<Handlebars|http://handlebarsjs.com/> templates. In most ways, this module
+functions identically to Text::Xslate, except that it parses Handlebars
+templates instead.
+
+Text::Handlebars accepts an additional constructor parameter of C<helpers> to
+define Handlebars-style helper functions. Standard helpers are identical to
+functions defined with the C<function> parameter, except that they receive the
+current context implicitly as the first parameter (since perl doesn't have an
+implicit C<this> parameter). Block helpers also receive the context as the
+first parameter, and they also receive the C<options> parameter as a hashref.
+As an example:
+
+  sub {
+      my ($context, $items, $options) = @_;
+
+      my $out = "<ul>";
+
+      for my $item (@$items) {
+          $out .= "<li>" . $options->{fn}->($item) . "</li>";
+      }
+
+      return $out . "</ul>\n";
+  },
+
+defines a simple block helper to generate a C<< <ul> >> list.
+
+Text::Handlebars also overrides C<render> and C<render_string> to allow using
+any type of data (not just hashrefs) as a context (so rendering a template
+consisting of only C<{{.}}> works properly).
+
+=cut
 
 sub default_helpers {
     my $class = shift;
@@ -180,5 +266,74 @@ sub render {
         return $self->SUPER::render($name, { '.' => $vars });
     }
 }
+
+=head1 BUGS/CAVEATS
+
+=over 4
+
+=item *
+
+The auto-indenting behavior for partials is not yet implemented, due to
+limitations in Text::Xslate.
+
+=item *
+
+Passing a new context to partials is not yet supported.
+
+=item *
+
+The C<data> parameter for C<@foo> variables when calling
+C<< $options->{fn}->() >> is not supported, because I don't understand its
+purpose. If someone wants this functionality, feel free to let me know, and
+tell me why.
+
+=back
+
+Please report any bugs through RT: email
+C<bug-text-handlebars at rt.cpan.org>, or browse to
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Text-Handlebars>.
+
+=head1 SEE ALSO
+
+L<http://handlebarsjs.com/>
+
+L<Text::Xslate>
+
+=head1 SUPPORT
+
+You can find this documentation for this module with the perldoc command.
+
+    perldoc Text::Handlebars
+
+You can also look for information at:
+
+=over 4
+
+=item * AnnoCPAN: Annotated CPAN documentation
+
+L<http://annocpan.org/dist/Text-Handlebars>
+
+=item * CPAN Ratings
+
+L<http://cpanratings.perl.org/d/Text-Handlebars>
+
+=item * RT: CPAN's request tracker
+
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Text-Handlebars>
+
+=item * Search CPAN
+
+L<http://search.cpan.org/dist/Text-Handlebars>
+
+=back
+
+=for Pod::Coverage
+  default_helpers
+  default_functions
+  options
+  render
+  render_string
+
+=cut
 
 1;
