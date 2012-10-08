@@ -592,4 +592,31 @@ sub _field_to_string {
 __PACKAGE__->meta->make_immutable;
 no Any::Moose;
 
+=for Pod::Coverage
+  call
+  define_function
+  define_helper
+  expression
+  init_symbols
+  is_valid_field
+  led_dot
+  led_equals
+  literal
+  make_field_lookup
+  nud_key
+  nud_mark_raw
+  nud_name
+  nud_uplevel
+  parse_literal
+  preprocess
+  print_raw
+  split_tags
+  std_block
+  std_partial
+  symbol_class
+  tokenize
+  undefined_name
+
+=cut
+
 1;

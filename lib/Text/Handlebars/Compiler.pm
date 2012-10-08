@@ -237,4 +237,14 @@ sub check_lambda {
 __PACKAGE__->meta->make_immutable;
 no Any::Moose;
 
+=for Pod::Coverage
+  call
+  check_lambda
+  define_helper
+  iterator_index
+  make_ternary
+  vars
+
+=cut
+
 1;
