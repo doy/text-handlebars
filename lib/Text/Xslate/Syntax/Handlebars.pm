@@ -1,5 +1,4 @@
 package Text::Xslate::Syntax::Handlebars;
-# ABSTRACT: {{handlebars}} syntax for Xslate
 use Any::Moose;
 
 use Carp 'confess';
