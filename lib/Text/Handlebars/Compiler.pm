@@ -147,6 +147,17 @@ sub _generate_partial {
     );
 }
 
+sub _generate_for {
+    my $self = shift;
+    my ($node) = @_;
+
+    my @opcodes = $self->SUPER::_generate_for(@_);
+    return (
+        @opcodes,
+        $self->opcode('nil'),
+    );
+}
+
 __PACKAGE__->meta->make_immutable;
 no Any::Moose;
 

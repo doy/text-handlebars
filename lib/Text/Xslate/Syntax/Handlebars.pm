@@ -455,9 +455,9 @@ sub std_block {
     ];
 
     my $var = $name->clone(arity => 'variable');
-    return $self->make_ternary(
-        $self->call('(is_code)', $var->clone),
-        $self->print_raw(
+    return $self->print_raw(
+        $self->make_ternary(
+            $self->call('(is_code)', $var->clone),
             $self->call(
                 '(run_code)',
                 $var->clone,
@@ -466,13 +466,13 @@ sub std_block {
                 $block{if}{close_tag}->clone,
                 $block{if}{raw_text}->clone,
             ),
-        ),
-        $self->symbol('(for)')->clone(
-            arity  => 'for',
-            first  => $iterations,
-            second => [$loop_var],
-            third  => $body_block,
-        ),
+            $self->symbol('(for)')->clone(
+                arity  => 'for',
+                first  => $iterations,
+                second => [$loop_var],
+                third  => $body_block,
+            ),
+        )
     );
 }
 
