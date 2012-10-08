@@ -308,11 +308,6 @@ sub nud_name {
 
     my $call = $self->call($name);
 
-    if ($name->is_helper) {
-        $call->is_helper(1);
-        push @{ $call->second }, $self->vars;
-    }
-
     if ($self->token->is_defined) {
         push @{ $call->second }, $self->expression(0);
     }
@@ -504,17 +499,9 @@ sub std_partial {
     my $partial = $self->token->clone(arity => 'literal');
     $self->advance;
 
-    return $self->make_ternary(
-        $self->call('(find_file)', $partial->clone),
-        $symbol->clone(
-            arity => 'include',
-            id    => 'include',
-            first => $partial,
-        ),
-        $symbol->clone(
-            arity => 'literal',
-            id    => '',
-        ),
+    return $symbol->clone(
+        arity => 'partial',
+        first => $partial,
     );
 }
 
@@ -615,6 +602,14 @@ sub expression {
     }
 
     return $left;
+}
+
+sub call {
+    my $self = shift;
+
+    my $call = $self->SUPER::call(@_);
+    $call->is_helper($call->first->is_helper);
+    return $call;
 }
 
 sub make_field_lookup {

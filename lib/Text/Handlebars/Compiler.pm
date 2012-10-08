@@ -105,6 +105,8 @@ sub _generate_call {
 
         my $hash = $parser->call($make_hash, @hash);
 
+        unshift @args, $parser->vars;
+
         if ($node->first->arity eq 'call' && $node->first->first->id eq '(make_block_helper)') {
             push @{ $node->first->second }, $hash;
             $node->second(\@args);
@@ -115,6 +117,34 @@ sub _generate_call {
     }
 
     return $self->SUPER::_generate_call($node);
+}
+
+sub _generate_partial {
+    my $self = shift;
+    my ($node) = @_;
+
+    my $parser = $self->parser;
+
+    my $find_file = $parser->symbol('(name)')->clone(
+        arity => 'name',
+        id    => '(find_file)',
+        line  => $node->line,
+    );
+
+    return $self->compile_ast(
+        $parser->make_ternary(
+            $parser->call($find_file, $node->first->clone),
+            $node->clone(
+                arity => 'include',
+                id    => 'include',
+                first => $node->first,
+            ),
+            $node->clone(
+                arity => 'literal',
+                id    => '',
+            ),
+        ),
+    );
 }
 
 __PACKAGE__->meta->make_immutable;
