@@ -126,7 +126,7 @@ sub _generate_block {
     }
 
     my $iterations = $self->make_ternary(
-        $self->call($node, '(is_falsy)', $name->clone),
+        $self->is_falsy($name->clone),
         $self->make_array($self->parser->literal(1)),
         $self->make_ternary(
             $self->is_array_ref($name->clone),
@@ -139,7 +139,7 @@ sub _generate_block {
 
     my $body_block = [
         $self->make_ternary(
-            $self->call($node, '(is_falsy)', $name->clone),
+            $self->is_falsy($name->clone),
             $name->clone(
                 arity  => 'block_body',
                 first  => undef,
@@ -214,6 +214,24 @@ sub is_unary {
     );
 
     return $unary{$id};
+}
+
+sub _generate_array_length {
+    my $self = shift;
+    my ($node) = @_;
+
+    my $max_index = $self->parser->symbol('(max_index)')->clone(
+        id    => 'max_index',
+        arity => 'unary',
+        first => $node->first,
+    );
+
+    return (
+        $self->compile_ast($max_index),
+        $self->opcode('move_to_sb'),
+        $self->opcode('literal', 1),
+        $self->opcode('add'),
+    );
 }
 
 sub call {
@@ -294,6 +312,39 @@ sub make_hash {
     return $self->parser->symbol('{')->clone(
         arity => 'composer',
         first => \@contents,
+    );
+}
+
+sub is_falsy {
+    my $self = shift;
+    my ($node) = @_;
+
+    return $self->not(
+        $self->make_ternary(
+            $self->is_array_ref($node->clone),
+            $self->array_length($node->clone),
+            $node
+        )
+    );
+}
+
+sub not {
+    my $self = shift;
+    my ($node) = @_;
+
+    return $self->parser->symbol('!')->clone(
+        arity => 'unary',
+        first => $node,
+    );
+}
+
+sub array_length {
+    my $self = shift;
+    my ($node) = @_;
+
+    return $self->parser->symbol('(array_length)')->clone(
+        arity => 'array_length',
+        first => $node,
     );
 }
 

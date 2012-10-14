@@ -124,15 +124,6 @@ sub default_functions {
     return {
         %{ $class->SUPER::default_functions(@_) },
         %{ $class->default_helpers },
-        '(is_falsy)' => sub {
-            my ($val) = @_;
-            if (ref($val) && ref($val) eq 'ARRAY') {
-                return @$val == 0;
-            }
-            else {
-                return !$val;
-            }
-        },
         '(is_code)' => sub {
             my ($val) = @_;
             return ref($val) && ref($val) eq 'CODE';
