@@ -124,10 +124,6 @@ sub default_functions {
     return {
         %{ $class->SUPER::default_functions(@_) },
         %{ $class->default_helpers },
-        '(is_code)' => sub {
-            my ($val) = @_;
-            return ref($val) && ref($val) eq 'CODE';
-        },
         '(new_vars_for)' => sub {
             my ($vars, $value, $i) = @_;
 

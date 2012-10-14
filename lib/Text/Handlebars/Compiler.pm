@@ -164,7 +164,7 @@ sub _generate_block {
     my $var = $name->clone(arity => 'variable');
     return $self->compile_ast(
         $self->make_ternary(
-            $self->call($node, '(is_code)', $var->clone),
+            $self->is_code_ref($var->clone),
             $self->call(
                 $node,
                 '(run_code)',
@@ -210,7 +210,7 @@ sub is_unary {
     my ($id) = @_;
 
     my %unary = (
-        map { $_ => 1 } qw(builtin_is_array_ref)
+        map { $_ => 1 } qw(builtin_is_array_ref is_code_ref)
     );
 
     return $unary{$id};
@@ -278,7 +278,7 @@ sub check_lambda {
     my ($var) = @_;
 
     return $self->make_ternary(
-        $self->call($var, '(is_code)', $var->clone),
+        $self->is_code_ref($var->clone),
         $self->call($var, '(run_code)', $var->clone, $self->vars),
         $var,
     );
@@ -290,6 +290,17 @@ sub is_array_ref {
 
     return $self->parser->symbol('(is_array_ref)')->clone(
         id    => 'builtin_is_array_ref',
+        arity => 'unary',
+        first => $var,
+    );
+}
+
+sub is_code_ref {
+    my $self = shift;
+    my ($var) = @_;
+
+    return $self->parser->symbol('(is_code_ref)')->clone(
+        id    => 'is_code_ref',
         arity => 'unary',
         first => $var,
     );
