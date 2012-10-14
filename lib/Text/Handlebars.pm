@@ -133,10 +133,6 @@ sub default_functions {
                 return !$val;
             }
         },
-        '(make_array)' => sub {
-            my ($length) = @_;
-            return [(undef) x $length];
-        },
         '(make_hash)' => sub {
             my (%hash) = @_;
             return \%hash;

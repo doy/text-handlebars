@@ -127,11 +127,11 @@ sub _generate_block {
 
     my $iterations = $self->make_ternary(
         $self->call($node, '(is_falsy)', $name->clone),
-        $self->call($node, '(make_array)', $self->parser->literal(1)),
+        $self->make_array($self->parser->literal(1)),
         $self->make_ternary(
             $self->is_array_ref($name->clone),
             $name->clone,
-            $self->call($node, '(make_array)', $self->parser->literal(1)),
+            $self->make_array($self->parser->literal(1)),
         ),
     );
 
@@ -274,6 +274,16 @@ sub is_array_ref {
         id    => 'builtin_is_array_ref',
         arity => 'unary',
         first => $var,
+    );
+}
+
+sub make_array {
+    my $self = shift;
+    my (@contents) = @_;
+
+    return $self->parser->symbol('[')->clone(
+        arity => 'composer',
+        first => \@contents,
     );
 }
 
