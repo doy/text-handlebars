@@ -133,10 +133,6 @@ sub default_functions {
                 return !$val;
             }
         },
-        '(make_hash)' => sub {
-            my (%hash) = @_;
-            return \%hash;
-        },
         '(is_code)' => sub {
             my ($val) = @_;
             return ref($val) && ref($val) eq 'CODE';

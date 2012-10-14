@@ -57,7 +57,7 @@ sub _generate_call {
             }
         }
 
-        my $hash = $self->call($node, '(make_hash)', @hash);
+        my $hash = $self->make_hash(@hash);
 
         unshift @args, $self->vars;
 
@@ -282,6 +282,16 @@ sub make_array {
     my (@contents) = @_;
 
     return $self->parser->symbol('[')->clone(
+        arity => 'composer',
+        first => \@contents,
+    );
+}
+
+sub make_hash {
+    my $self = shift;
+    my (@contents) = @_;
+
+    return $self->parser->symbol('{')->clone(
         arity => 'composer',
         first => \@contents,
     );
