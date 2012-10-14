@@ -129,7 +129,7 @@ sub _generate_block {
         $self->call($node, '(is_falsy)', $name->clone),
         $self->call($node, '(make_array)', $self->parser->literal(1)),
         $self->make_ternary(
-            $self->call($node, 'is_array_ref', $name->clone),
+            $self->is_array_ref($name->clone),
             $name->clone,
             $self->call($node, '(make_array)', $self->parser->literal(1)),
         ),
@@ -184,6 +184,38 @@ sub _generate_block {
     );
 }
 
+sub _generate_unary {
+    my $self = shift;
+    my ($node) = @_;
+
+    # XXX copied from Text::Xslate::Compiler because it uses a hardcoded list
+    # of unary ops
+    if ($self->is_unary($node->id)) {
+        my @code = (
+            $self->compile_ast($node->first),
+            $self->opcode($node->id)
+        );
+        if( $Text::Xslate::Compiler::OPTIMIZE and $self->_code_is_literal($code[0]) ) {
+            $self->_fold_constants(\@code);
+        }
+        return @code;
+    }
+    else {
+        return $self->SUPER::_generate_unary(@_);
+    }
+}
+
+sub is_unary {
+    my $self = shift;
+    my ($id) = @_;
+
+    my %unary = (
+        map { $_ => 1 } qw(builtin_is_array_ref)
+    );
+
+    return $unary{$id};
+}
+
 sub call {
     my $self = shift;
     my ($node, $name, @args) = @_;
@@ -231,6 +263,17 @@ sub check_lambda {
         $self->call($var, '(is_code)', $var->clone),
         $self->call($var, '(run_code)', $var->clone, $self->vars),
         $var,
+    );
+}
+
+sub is_array_ref {
+    my $self = shift;
+    my ($var) = @_;
+
+    return $self->parser->symbol('(is_array_ref)')->clone(
+        id    => 'builtin_is_array_ref',
+        arity => 'unary',
+        first => $var,
     );
 }
 
