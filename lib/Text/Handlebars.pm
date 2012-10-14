@@ -131,20 +131,13 @@ sub default_functions {
         '(new_vars_for)' => sub {
             my ($vars, $value, $i) = @_;
 
-            if (my $ref = ref($value)) {
-                if (defined $ref && $ref eq 'ARRAY') {
-                    die "no iterator cycle provided?"
-                        unless defined $i;
+            if (ref($value) eq 'ARRAY') {
+                $value = ref($value->[$i]) eq 'HASH'
+                    ? { '.' => $value->[$i], %{ $value->[$i] } }
+                    : { '.' => $value->[$i] };
+            }
 
-                    $value = ref($value->[$i]) && ref($value->[$i]) eq 'HASH'
-                        ? { '.' => $value->[$i], %{ $value->[$i] } }
-                        : { '.' => $value->[$i] };
-
-                    $ref = ref($value);
-                }
-
-                return $vars unless $ref && $ref eq 'HASH';
-
+            if (ref($value) eq 'HASH') {
                 weaken(my $vars_copy = $vars);
                 return {
                     '@index' => $i,
