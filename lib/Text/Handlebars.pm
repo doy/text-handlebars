@@ -138,12 +138,11 @@ sub default_functions {
             }
 
             if (ref($value) eq 'HASH') {
-                weaken(my $vars_copy = $vars);
                 return {
                     '@index' => $i,
                     %$vars,
                     %$value,
-                    '..' => $vars_copy,
+                    '..' => $vars,
                 };
             }
             else {
