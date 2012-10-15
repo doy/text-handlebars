@@ -165,14 +165,11 @@ sub _generate_block {
     return $self->compile_ast(
         $self->make_ternary(
             $self->is_code_ref($var->clone),
-            $self->call(
-                $node,
-                '(run_code)',
+            $self->run_code(
                 $var->clone,
-                $self->vars,
+                $block{if}{raw_text}->clone,
                 $block{if}{open_tag}->clone,
                 $block{if}{close_tag}->clone,
-                $block{if}{raw_text}->clone,
             ),
             $self->parser->symbol('(for)')->clone(
                 arity  => 'for',
@@ -234,6 +231,62 @@ sub _generate_array_length {
     );
 }
 
+sub _generate_run_code {
+    my $self = shift;
+    my ($node) = @_;
+
+    my $to_render = $node->clone(arity => 'call');
+
+    if ($node->third) {
+        my ($open_tag, $close_tag) = @{ $node->third };
+        $to_render = $self->make_ternary(
+            $self->parser->symbol('==')->clone(
+                arity  => 'binary',
+                first  => $close_tag->clone,
+                second => $self->parser->literal('}}'),
+            ),
+            $to_render,
+            $self->join('{{= ', $open_tag, ' ', $close_tag, ' =}}', $to_render)
+        );
+    }
+
+    # XXX turn this into an opcode
+    my $render_string = $self->call(
+        $node,
+        '(render_string)',
+        $to_render,
+        $self->vars,
+    );
+
+    return $self->compile_ast($render_string);
+}
+
+sub join {
+    my $self = shift;
+    my (@args) = @_;
+
+    @args = map { $self->literalize($_) } @args;
+
+    my $joined = shift @args;
+    for my $arg (@args) {
+        $joined = $self->parser->symbol('~')->clone(
+            arity  => 'binary',
+            first  => $joined,
+            second => $arg,
+        );
+    }
+
+    return $joined;
+}
+
+sub literalize {
+    my $self = shift;
+    my ($val) = @_;
+
+    return $val->clone if blessed($val);
+    return $self->parser->literal($val);
+}
+
 sub call {
     my $self = shift;
     my ($node, $name, @args) = @_;
@@ -279,7 +332,7 @@ sub check_lambda {
 
     return $self->make_ternary(
         $self->is_code_ref($var->clone),
-        $self->call($var, '(run_code)', $var->clone, $self->vars),
+        $self->run_code($var->clone),
         $var,
     );
 }
@@ -356,6 +409,19 @@ sub array_length {
     return $self->parser->symbol('(array_length)')->clone(
         arity => 'array_length',
         first => $node,
+    );
+}
+
+sub run_code {
+    my $self = shift;
+    my ($code, $raw_text, $open_tag, $close_tag) = @_;
+
+    return $self->parser->symbol('(run_code)')->clone(
+        arity  => 'run_code',
+        first  => $code,
+        (@_ > 1
+            ? (second => [ $raw_text ], third => [ $open_tag, $close_tag ])
+            : (second => [])),
     );
 }
 
