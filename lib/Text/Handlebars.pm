@@ -164,11 +164,8 @@ sub _register_builtin_methods {
     my ($funcs) = @_;
 
     weaken(my $weakself = $self);
-    $funcs->{'(run_code)'} = sub {
-        my ($code, $vars, $open_tag, $close_tag, @args) = @_;
-        my $to_render = $code->(@args);
-        $to_render = "{{= $open_tag $close_tag =}}$to_render"
-            if defined($open_tag) && defined($close_tag) && $close_tag ne '}}';
+    $funcs->{'(render_string)'} = sub {
+        my ($to_render, $vars) = @_;
         return $weakself->render_string($to_render, $vars);
     };
     $funcs->{'(find_file)'} = sub {
