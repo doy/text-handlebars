@@ -124,10 +124,6 @@ sub default_functions {
     return {
         %{ $class->SUPER::default_functions(@_) },
         %{ $class->default_helpers },
-        '(merge_hash)' => sub {
-            my ($left, $right) = @_;
-            return { %$left, %$right };
-        },
     };
 }
 

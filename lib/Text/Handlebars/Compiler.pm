@@ -344,6 +344,23 @@ sub _generate_save_lvar {
     );
 }
 
+sub _generate_merge_hash {
+    my $self = shift;
+    my ($node) = @_;
+
+    my $lvar_id = $self->lvar_id;
+    local $self->{lvar_id} = $self->lvar_use(1);
+
+    return (
+        $self->compile_ast($node->first),
+        $self->opcode('save_to_lvar', $lvar_id),
+        $self->compile_ast($node->second),
+        $self->opcode('move_to_sb'),
+        $self->opcode('load_lvar', $lvar_id),
+        $self->opcode('merge_hash'),
+    );
+}
+
 sub join {
     my $self = shift;
     my (@args) = @_;
@@ -558,7 +575,11 @@ sub merge_single_hash {
     my $self = shift;
     my ($left, $right) = @_;
 
-    return $self->call($left, '(merge_hash)', $left, $right);
+    return $left->clone(
+        arity  => 'merge_hash',
+        first  => $left,
+        second => $right,
+    );
 }
 
 __PACKAGE__->meta->make_immutable;
