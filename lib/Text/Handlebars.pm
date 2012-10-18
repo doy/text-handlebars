@@ -124,26 +124,9 @@ sub default_functions {
     return {
         %{ $class->SUPER::default_functions(@_) },
         %{ $class->default_helpers },
-        '(new_vars_for)' => sub {
-            my ($vars, $value, $i) = @_;
-
-            if (ref($value) eq 'ARRAY') {
-                $value = ref($value->[$i]) eq 'HASH'
-                    ? { '.' => $value->[$i], %{ $value->[$i] } }
-                    : { '.' => $value->[$i] };
-            }
-
-            if (ref($value) eq 'HASH') {
-                return {
-                    '@index' => $i,
-                    %$vars,
-                    %$value,
-                    '..' => $vars,
-                };
-            }
-            else {
-                return $vars;
-            }
+        '(merge_hash)' => sub {
+            my ($left, $right) = @_;
+            return { %$left, %$right };
         },
     };
 }
