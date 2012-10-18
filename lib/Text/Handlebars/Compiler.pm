@@ -148,13 +148,7 @@ sub _generate_block {
             $name->clone(
                 arity  => 'block_body',
                 first  => [
-                    $self->call(
-                        $node,
-                        '(new_vars_for)',
-                        $self->vars,
-                        $name->clone,
-                        $self->iterator_index,
-                    ),
+                    $self->new_vars($name->clone, $self->iterator_index),
                 ],
                 second => [ $block{if}{body} ],
             ),
@@ -207,7 +201,8 @@ sub is_unary {
     my ($id) = @_;
 
     my %unary = (
-        map { $_ => 1 } qw(builtin_is_array_ref is_code_ref render_string)
+        map { $_ => 1 } qw(builtin_is_array_ref builtin_is_hash_ref is_code_ref
+                           render_string)
     );
 
     return $unary{$id};
@@ -257,6 +252,96 @@ sub _generate_run_code {
     );
 
     return $self->compile_ast($render_string);
+}
+
+sub _generate_new_vars {
+    my $self = shift;
+    my ($node) = @_;
+
+    my ($vars, $value, $i) = ($node->first, $node->second, $node->third);
+
+    my $value_at_index = $value->clone(
+        arity  => 'field',
+        first  => $value->clone,
+        second => $i->clone,
+    );
+
+    my $lvar_id = $self->lvar_id;
+    local $self->{lvar_id} = $self->lvar_use(1);
+
+    my @code;
+
+    push @code, $self->compile_ast($value);
+    push @code, $self->opcode('save_to_lvar', $lvar_id);
+    my $lvar_value = $value->clone(arity => 'lvar', id => $lvar_id);
+
+    push @code, $self->compile_ast(
+        $self->make_ternary(
+            $self->is_array_ref($lvar_value->clone),
+            $self->save_lvar(
+                $lvar_id,
+                $self->make_ternary(
+                    $self->is_hash_ref($value_at_index->clone),
+                    $self->merge_hash(
+                        $self->make_hash(
+                            $self->parser->literal('.'),
+                            $value_at_index->clone,
+                        ),
+                        $value_at_index->clone,
+                    ),
+                    $self->make_hash(
+                        $self->parser->literal('.'),
+                        $value_at_index->clone,
+                    ),
+                ),
+            ),
+        ),
+    );
+
+    push @code, $self->compile_ast(
+        $self->save_lvar(
+            $lvar_id,
+            $self->make_ternary(
+                $self->is_hash_ref($lvar_value->clone),
+                $self->merge_hash(
+                    $self->make_hash(
+                        $self->parser->literal('@index'),
+                        $i->clone,
+                    ),
+                    $vars->clone,
+                    $lvar_value->clone,
+                    $self->make_hash(
+                        $self->parser->literal('..'),
+                        $vars->clone,
+                    ),
+                ),
+                $vars->clone,
+            ),
+        ),
+    );
+
+    push @code, $self->opcode('load_lvar', $lvar_id);
+
+    return @code;
+}
+
+sub _generate_lvar {
+    my $self = shift;
+    my ($node) = @_;
+
+    return (
+        $self->opcode('load_lvar', $node->id),
+    );
+}
+
+sub _generate_save_lvar {
+    my $self = shift;
+    my ($node) = @_;
+
+    return (
+        $self->compile_ast($node->first),
+        $self->opcode('save_to_lvar', $node->id),
+    );
 }
 
 sub join {
@@ -346,6 +431,17 @@ sub is_array_ref {
     );
 }
 
+sub is_hash_ref {
+    my $self = shift;
+    my ($var) = @_;
+
+    return $self->parser->symbol('(is_hash_ref)')->clone(
+        id    => 'builtin_is_hash_ref',
+        arity => 'unary',
+        first => $var,
+    );
+}
+
 sub is_code_ref {
     my $self = shift;
     my ($var) = @_;
@@ -421,6 +517,48 @@ sub run_code {
             ? (second => [ $raw_text ], third => [ $open_tag, $close_tag ])
             : (second => [])),
     );
+}
+
+sub new_vars {
+    my $self = shift;
+    my ($value, $i) = @_;
+
+    return $value->clone(
+        arity  => 'new_vars',
+        first  => $self->vars,
+        second => $value,
+        third  => $i,
+    );
+}
+
+sub save_lvar {
+    my $self = shift;
+    my ($id, $value) = @_;
+
+    return $value->clone(
+        arity => 'save_lvar',
+        id    => $id,
+        first => $value,
+    );
+}
+
+sub merge_hash {
+    my $self = shift;
+    my (@hashes) = @_;
+
+    my $merged = shift @hashes;
+    for my $hash (@hashes) {
+        $merged = $self->merge_single_hash($merged, $hash);
+    }
+
+    return $merged;
+}
+
+sub merge_single_hash {
+    my $self = shift;
+    my ($left, $right) = @_;
+
+    return $self->call($left, '(merge_hash)', $left, $right);
 }
 
 __PACKAGE__->meta->make_immutable;
