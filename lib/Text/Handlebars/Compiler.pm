@@ -77,15 +77,27 @@ sub _generate_partial {
     my $self = shift;
     my ($node) = @_;
 
-    return $self->compile_ast(
-        $self->make_ternary(
-            $self->call($node, '(find_file)', $node->first->clone),
-            $node->clone(
-                arity => 'include',
-                id    => 'include',
-                first => $self->call($node, '(find_file)', $node->first),
+    my $lvar_id = $self->lvar_id;
+    local $self->{lvar_id} = $self->lvar_use(1);
+    my $lvar = $node->clone(arity => 'lvar', id => $lvar_id);
+
+    return (
+        $self->compile_ast(
+            $self->save_lvar(
+                $lvar_id,
+                $self->call($node, '(find_file)', $node->first->clone)
             ),
-            $self->parser->literal(''),
+        ),
+        $self->compile_ast(
+            $self->make_ternary(
+                $lvar->clone,
+                $node->clone(
+                    arity => 'include',
+                    id    => 'include',
+                    first => $lvar->clone,
+                ),
+                $self->parser->literal(''),
+            ),
         ),
     );
 }
