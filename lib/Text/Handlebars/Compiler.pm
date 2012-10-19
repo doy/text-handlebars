@@ -83,7 +83,7 @@ sub _generate_partial {
             arity  => 'binary',
             id     => '~',
             first  => $file->[0],
-            second => $self->call($node, '(suffix)'),
+            second => $node->clone(arity => 'suffix'),
         );
     }
 
@@ -102,11 +102,24 @@ sub _generate_partial {
     );
 }
 
+sub _generate_suffix {
+    my $self = shift;
+    my ($node) = @_;
+
+    return (
+        $self->opcode('suffix'),
+    );
+}
+
 sub find_file {
     my $self = shift;
     my ($filename) = @_;
 
-    return $self->call($filename, '(find_file)', $filename);
+    return $filename->clone(
+        arity => 'unary',
+        id    => 'find_file',
+        first => $filename,
+    );
 }
 
 sub _generate_for {
@@ -207,7 +220,7 @@ sub _generate_unary {
         );
         # render_string can't be constant folded, because it depends on the
         # current vars
-        if ($Text::Xslate::Compiler::OPTIMIZE and $self->_code_is_literal(@code) && $node->id ne 'render_string') {
+        if ($Text::Xslate::Compiler::OPTIMIZE and $self->_code_is_literal(@code) && $node->id ne 'render_string' && $node->id ne 'find_file') {
             $self->_fold_constants(\@code);
         }
         return @code;
@@ -223,7 +236,7 @@ sub is_unary {
 
     my %unary = (
         map { $_ => 1 } qw(builtin_is_array_ref builtin_is_hash_ref is_code_ref
-                           render_string)
+                           find_file render_string)
     );
 
     return $unary{$id};
