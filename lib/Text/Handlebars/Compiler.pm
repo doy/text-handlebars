@@ -96,7 +96,7 @@ sub _generate_partial {
                     id    => 'include',
                     first => $lvar->clone,
                 ),
-                $self->parser->literal(''),
+                $self->literal(''),
             ),
         ),
     );
@@ -130,7 +130,7 @@ sub _generate_block {
                     $block{if}{raw_text}->clone,
                     ($block{else}
                         ? $block{else}{raw_text}->clone
-                        : $self->parser->literal('')),
+                        : $self->literal('')),
                 ),
                 is_block_helper => 1,
             ),
@@ -139,11 +139,11 @@ sub _generate_block {
 
     my $iterations = $self->make_ternary(
         $self->is_falsy($name->clone),
-        $self->make_array($self->parser->literal(1)),
+        $self->make_array($self->literal(1)),
         $self->make_ternary(
             $self->is_array_ref($name->clone),
             $name->clone,
-            $self->make_array($self->parser->literal(1)),
+            $self->make_array($self->literal(1)),
         ),
     );
 
@@ -252,7 +252,7 @@ sub _generate_run_code {
             $self->parser->symbol('==')->clone(
                 arity  => 'binary',
                 first  => $close_tag->clone,
-                second => $self->parser->literal('}}'),
+                second => $self->literal('}}'),
             ),
             $to_render,
             $self->join('{{= ', $open_tag, ' ', $close_tag, ' =}}', $to_render)
@@ -298,13 +298,13 @@ sub _generate_new_vars {
                     $self->is_hash_ref($value_at_index->clone),
                     $self->merge_hash(
                         $self->make_hash(
-                            $self->parser->literal('.'),
+                            $self->literal('.'),
                             $value_at_index->clone,
                         ),
                         $value_at_index->clone,
                     ),
                     $self->make_hash(
-                        $self->parser->literal('.'),
+                        $self->literal('.'),
                         $value_at_index->clone,
                     ),
                 ),
@@ -319,13 +319,13 @@ sub _generate_new_vars {
                 $self->is_hash_ref($lvar_value->clone),
                 $self->merge_hash(
                     $self->make_hash(
-                        $self->parser->literal('@index'),
+                        $self->literal('@index'),
                         $i->clone,
                     ),
                     $vars->clone,
                     $lvar_value->clone,
                     $self->make_hash(
-                        $self->parser->literal('..'),
+                        $self->literal('..'),
                         $vars->clone,
                     ),
                 ),
@@ -398,7 +398,7 @@ sub literalize {
     my ($val) = @_;
 
     return $val->clone if blessed($val);
-    return $self->parser->literal($val);
+    return $self->literal($val);
 }
 
 sub call {
@@ -595,6 +595,8 @@ sub merge_single_hash {
         second => $right,
     );
 }
+
+sub literal { shift->parser->literal(@_) }
 
 __PACKAGE__->meta->make_immutable;
 no Any::Moose;
