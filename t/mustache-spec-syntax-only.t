@@ -23,6 +23,13 @@ for my $file (dir('t', 'mustache-spec', 'specs')->children) {
                 map { +{ "$_.mustache" => $test->{partials}{$_} } }
                     keys %{ $test->{partials} }
             ],
+            __create => sub {
+                Text::Xslate->new(
+                    syntax   => 'Handlebars',
+                    compiler => 'Text::Handlebars::Compiler', # XXX
+                    %{ $_[0] },
+                );
+            },
         };
         render_ok(
             $opts,
