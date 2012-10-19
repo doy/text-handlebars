@@ -77,21 +77,24 @@ sub _generate_partial {
     my $self = shift;
     my ($node) = @_;
 
-    my $lvar_id = $self->lvar_id;
-    local $self->{lvar_id} = $self->lvar_use(1);
-    my $lvar = $node->clone(arity => 'lvar', id => $lvar_id);
+    my $file = $node->first;
+    if (ref($file) eq 'ARRAY') {
+        $file = $node->clone(
+            arity  => 'binary',
+            id     => '~',
+            first  => $file->[0],
+            second => $self->call($node, '(suffix)'),
+        );
+    }
 
     return (
         $self->compile_ast(
-            $self->save_lvar($lvar_id, $self->find_file($node->first->clone)),
-        ),
-        $self->compile_ast(
             $self->make_ternary(
-                $lvar->clone,
+                $self->find_file($file->clone),
                 $node->clone(
                     arity => 'include',
                     id    => 'include',
-                    first => $lvar->clone,
+                    first => $file->clone,
                 ),
                 $self->literal(''),
             ),
@@ -103,36 +106,7 @@ sub find_file {
     my $self = shift;
     my ($filename) = @_;
 
-    return $filename->clone(
-        arity => 'find_file',
-        first => $filename,
-    );
-}
-
-sub _generate_find_file {
-    my $self = shift;
-    my ($node) = @_;
-
-    my $filename = $node->first;
-    my $with_suffix = $self->parser->symbol('~')->clone(
-        arity  => 'binary',
-        first  => $filename->clone,
-        second => $self->call($node, '(suffix)'),
-    );
-
-    return (
-        $self->compile_ast(
-            $self->make_ternary(
-                $self->call($node, '(find_file)', $filename->clone),
-                $filename->clone,
-                $self->make_ternary(
-                    $self->call($node, '(find_file)', $with_suffix->clone),
-                    $with_suffix->clone,
-                    $self->literal(''),
-                ),
-            ),
-        ),
-    );
+    return $self->call($filename, '(find_file)', $filename);
 }
 
 sub _generate_for {

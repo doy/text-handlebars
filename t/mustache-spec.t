@@ -18,7 +18,15 @@ for my $file (dir('t', 'mustache-spec', 'specs')->children) {
             && $test->{name} !~ /line endings/i;
 
         render_ok(
-            ($test->{partials} ? ({ path => [$test->{partials}] }) : ()),
+            ($test->{partials}
+                ? ({
+                       suffix => '.mustache',
+                       path   => [
+                           map { +{ "$_.mustache" => $test->{partials}{$_} } }
+                               keys %{ $test->{partials} }
+                       ]
+                   })
+                : ()),
             $test->{template},
             fix_data($test->{data}),
             $test->{expected},

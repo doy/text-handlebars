@@ -8,7 +8,7 @@ use Test::Handlebars;
 { local $TODO = "unimplemented";
 render_ok(
     {
-        path => [ { dude => '{{#this}}{{name}} ({{url}}) {{/this}}' } ],
+        path => [ { 'dude.tx' => '{{#this}}{{name}} ({{url}}) {{/this}}' } ],
     },
     'Dudes: {{>dude dudes}}',
     {
@@ -24,7 +24,7 @@ render_ok(
 
 render_ok(
     {
-        path => [ { dude => '{{name}}' } ],
+        path => [ { 'dude.tx' => '{{name}}' } ],
     },
     'Dudes: {{> [dude]}}',
     {

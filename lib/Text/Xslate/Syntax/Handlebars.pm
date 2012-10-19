@@ -438,7 +438,7 @@ sub std_partial {
 
     return $symbol->clone(
         arity => 'partial',
-        first => $partial,
+        first => ($partial->id =~ /\./ ? $partial : [ $partial ]),
     );
 }
 
