@@ -83,10 +83,7 @@ sub _generate_partial {
 
     return (
         $self->compile_ast(
-            $self->save_lvar(
-                $lvar_id,
-                $self->call($node, '(find_file)', $node->first->clone)
-            ),
+            $self->save_lvar($lvar_id, $self->find_file($node->first->clone)),
         ),
         $self->compile_ast(
             $self->make_ternary(
@@ -97,6 +94,42 @@ sub _generate_partial {
                     first => $lvar->clone,
                 ),
                 $self->literal(''),
+            ),
+        ),
+    );
+}
+
+sub find_file {
+    my $self = shift;
+    my ($filename) = @_;
+
+    return $filename->clone(
+        arity => 'find_file',
+        first => $filename,
+    );
+}
+
+sub _generate_find_file {
+    my $self = shift;
+    my ($node) = @_;
+
+    my $filename = $node->first;
+    my $with_suffix = $self->parser->symbol('~')->clone(
+        arity  => 'binary',
+        first  => $filename->clone,
+        second => $self->call($node, '(suffix)'),
+    );
+
+    return (
+        $self->compile_ast(
+            $self->make_ternary(
+                $self->call($node, '(find_file)', $filename->clone),
+                $filename->clone,
+                $self->make_ternary(
+                    $self->call($node, '(find_file)', $with_suffix->clone),
+                    $with_suffix->clone,
+                    $self->literal(''),
+                ),
             ),
         ),
     );
