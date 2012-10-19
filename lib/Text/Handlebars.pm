@@ -143,12 +143,12 @@ sub _register_builtin_methods {
     my ($funcs) = @_;
 
     weaken(my $weakself = $self);
+    $funcs->{'(suffix)'} = sub {
+        return $weakself->{suffix};
+    };
     $funcs->{'(find_file)'} = sub {
         my ($filename) = @_;
-        return $filename if try { $weakself->find_file($filename); 1 };
-        $filename .= $weakself->{suffix};
-        return $filename if try { $weakself->find_file($filename); 1 };
-        return 0;
+        return try { $weakself->find_file($filename); 1 };
     };
     $funcs->{'(make_block_helper)'} = sub {
         my ($code, $raw_text, $else_raw_text, $hash) = @_;
