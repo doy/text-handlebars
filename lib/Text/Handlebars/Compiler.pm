@@ -186,7 +186,9 @@ sub _generate_unary {
             $self->compile_ast($node->first),
             $self->opcode($node->id)
         );
-        if( $Text::Xslate::Compiler::OPTIMIZE and $self->_code_is_literal($code[0]) ) {
+        # render_string can't be constant folded, because it depends on the
+        # current vars
+        if ($Text::Xslate::Compiler::OPTIMIZE and $self->_code_is_literal(@code) && $node->id ne 'render_string') {
             $self->_fold_constants(\@code);
         }
         return @code;
