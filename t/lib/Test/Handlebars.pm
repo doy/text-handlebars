@@ -20,12 +20,10 @@ use Sub::Exporter -setup => {
 my $Test = Test::Builder->new;
 
 sub render_ok {
-    local $Test::Builder::Level = $Test::Builder::Level + 1;
     return _render_ok('render_string', @_);
 }
 
 sub render_file_ok {
-    local $Test::Builder::Level = $Test::Builder::Level + 1;
     return _render_ok('render', @_);
 }
 
