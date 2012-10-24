@@ -236,7 +236,7 @@ sub is_unary {
 
     my %unary = (
         map { $_ => 1 } qw(builtin_is_array_ref builtin_is_hash_ref is_code_ref
-                           find_file render_string)
+                           find_file)
     );
 
     return $unary{$id};
@@ -279,10 +279,12 @@ sub _generate_run_code {
         );
     }
 
-    my $render_string = $self->parser->symbol('(render_string)')->clone(
-        id    => 'render_string',
-        arity => 'unary',
-        first => $to_render,
+    # XXX turn this into an opcode
+    my $render_string = $self->call(
+        $node,
+        '(render_string)',
+        $to_render,
+        $self->vars,
     );
 
     return $self->compile_ast($render_string);

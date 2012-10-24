@@ -17,6 +17,9 @@ for my $file (dir('t', 'mustache-spec', 'specs')->children) {
             && $test->{name} =~ /standalone/i
             && $test->{name} !~ /line endings/i;
 
+        local $TODO = "render_string requires external functions"
+            if $file->basename eq '~lambdas.json';
+
         my $opts = {
             suffix => '.mustache',
             path   => [
