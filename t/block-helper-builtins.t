@@ -196,4 +196,32 @@ RENDERED
     "unless helper (true)"
 );
 
+{ local $TODO = "unimplemented"; local $SIG{__WARN__} = sub { };
+render_ok(
+    <<'TEMPLATE',
+<ul class="people_list">
+  {{#each people}}
+  <li>{{../description}} {{this}}</li>
+  {{/each}}
+</ul>
+TEMPLATE
+    {
+        description => "The Wonderful",
+        people => [
+            "Yehuda Katz",
+            "Alan Johnson",
+            "Charles Jolley",
+        ],
+    },
+    <<'RENDERED',
+<ul class="people_list">
+  <li>The Wonderful Yehuda Katz</li>
+  <li>The Wonderful Alan Johnson</li>
+  <li>The Wonderful Charles Jolley</li>
+</ul>
+RENDERED
+    "each helper with ../"
+);
+}
+
 done_testing;
