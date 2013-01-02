@@ -146,6 +146,7 @@ sub _generate_block {
                 first => $self->call(
                     $node,
                     '(make_block_helper)',
+                    $self->vars,
                     $name->first,
                     $block{if}{raw_text}->clone,
                     ($block{else}

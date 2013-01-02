@@ -149,15 +149,23 @@ sub _register_builtin_methods {
         return $weakself->render_string($to_render, $vars);
     };
     $funcs->{'(make_block_helper)'} = sub {
-        my ($code, $raw_text, $else_raw_text, $hash) = @_;
+        my ($vars, $code, $raw_text, $else_raw_text, $hash) = @_;
 
         my $options = {};
         $options->{fn} = sub {
             my ($new_vars) = @_;
+            $new_vars = {
+                %{ canonicalize_vars($new_vars) },
+                '..' => $vars,
+            };
             return $weakself->render_string($raw_text, $new_vars);
         };
         $options->{inverse} = sub {
             my ($new_vars) = @_;
+            $new_vars = {
+                %{ canonicalize_vars($new_vars) },
+                '..' => $vars,
+            };
             return $weakself->render_string($else_raw_text, $new_vars);
         };
         $options->{hash} = $hash;
@@ -188,23 +196,23 @@ sub render_string {
     my $self = shift;
     my ($string, $vars) = @_;
 
-    if (ref($vars) && ref($vars) eq 'HASH') {
-        return $self->SUPER::render_string(@_);
-    }
-    else {
-        return $self->SUPER::render_string($string, { '.' => $vars });
-    }
+    return $self->SUPER::render_string($string, canonicalize_vars($vars));
 }
 
 sub render {
     my $self = shift;
     my ($name, $vars) = @_;
 
+    return $self->SUPER::render($name, canonicalize_vars($vars));
+}
+
+sub canonicalize_vars {
+    my ($vars) = @_;
     if (ref($vars) && ref($vars) eq 'HASH') {
-        return $self->SUPER::render(@_);
+        return $vars;
     }
     else {
-        return $self->SUPER::render($name, { '.' => $vars });
+        return { '.' => $vars };
     }
 }
 

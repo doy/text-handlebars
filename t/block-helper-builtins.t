@@ -196,7 +196,6 @@ RENDERED
     "unless helper (true)"
 );
 
-{ local $TODO = "unimplemented"; local $SIG{__WARN__} = sub { };
 render_ok(
     <<'TEMPLATE',
 <ul class="people_list">
@@ -222,6 +221,5 @@ TEMPLATE
 RENDERED
     "each helper with ../"
 );
-}
 
 done_testing;
