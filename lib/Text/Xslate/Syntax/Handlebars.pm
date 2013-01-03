@@ -435,10 +435,16 @@ sub std_partial {
 
     my $partial = $self->token->clone(arity => 'literal');
     $self->advance;
+    my $args;
+    if ($self->token->id ne ';') {
+        $args = $self->expression(0);
+    }
+    $self->advance(';');
 
     return $symbol->clone(
-        arity => 'partial',
-        first => ($partial->id =~ /\./ ? $partial : [ $partial ]),
+        arity  => 'partial',
+        first  => ($partial->id =~ /\./ ? $partial : [ $partial ]),
+        second => $args,
     );
 }
 

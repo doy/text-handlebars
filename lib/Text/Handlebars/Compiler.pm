@@ -87,14 +87,20 @@ sub _generate_partial {
         );
     }
 
+    my $args = $node->second;
+    if ($args) {
+        $args = [ $self->new_vars($args) ];
+    }
+
     return (
         $self->compile_ast(
             $self->make_ternary(
                 $self->find_file($file->clone),
                 $node->clone(
-                    arity => 'include',
-                    id    => 'include',
-                    first => $file->clone,
+                    arity  => 'include',
+                    id     => 'include',
+                    first  => $file->clone,
+                    second => $args,
                 ),
                 $self->literal(''),
             ),
@@ -297,12 +303,6 @@ sub _generate_new_vars {
 
     my ($vars, $value, $i) = ($node->first, $node->second, $node->third);
 
-    my $value_at_index = $value->clone(
-        arity  => 'field',
-        first  => $value->clone,
-        second => $i->clone,
-    );
-
     my $lvar_id = $self->lvar_id;
     local $self->{lvar_id} = $self->lvar_use(1);
 
@@ -312,28 +312,50 @@ sub _generate_new_vars {
     push @code, $self->opcode('save_to_lvar', $lvar_id);
     my $lvar_value = $value->clone(arity => 'lvar', id => $lvar_id);
 
-    push @code, $self->compile_ast(
-        $self->make_ternary(
-            $self->is_array_ref($lvar_value->clone),
-            $self->save_lvar(
-                $lvar_id,
-                $self->make_ternary(
-                    $self->is_hash_ref($value_at_index->clone),
-                    $self->merge_hash(
+    if ($i) {
+        my $value_at_index = $value->clone(
+            arity  => 'field',
+            first  => $value->clone,
+            second => $i->clone,
+        );
+
+        push @code, $self->compile_ast(
+            $self->make_ternary(
+                $self->is_array_ref($lvar_value->clone),
+                $self->save_lvar(
+                    $lvar_id,
+                    $self->make_ternary(
+                        $self->is_hash_ref($value_at_index->clone),
+                        $self->merge_hash(
+                            $self->make_hash(
+                                $self->literal('.'),
+                                $value_at_index->clone,
+                            ),
+                            $value_at_index->clone,
+                        ),
                         $self->make_hash(
                             $self->literal('.'),
                             $value_at_index->clone,
                         ),
-                        $value_at_index->clone,
-                    ),
-                    $self->make_hash(
-                        $self->literal('.'),
-                        $value_at_index->clone,
                     ),
                 ),
             ),
-        ),
-    );
+        );
+    }
+    else {
+        push @code, $self->compile_ast(
+            $self->make_ternary(
+                $self->is_array_ref($lvar_value->clone),
+                $self->save_lvar(
+                    $lvar_id,
+                    $self->make_hash(
+                        $self->literal('.'),
+                        $value->clone,
+                    ),
+                ),
+            ),
+        );
+    }
 
     push @code, $self->compile_ast(
         $self->save_lvar(
@@ -341,10 +363,13 @@ sub _generate_new_vars {
             $self->make_ternary(
                 $self->is_hash_ref($lvar_value->clone),
                 $self->merge_hash(
-                    $self->make_hash(
-                        $self->literal('@index'),
-                        $i->clone,
-                    ),
+                    ($i
+                        ? (
+                            $self->make_hash(
+                                $self->literal('@index'), $i->clone
+                            )
+                        )
+                        : ()),
                     $vars->clone,
                     $lvar_value->clone,
                     $self->make_hash(

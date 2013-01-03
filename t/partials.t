@@ -5,7 +5,6 @@ use lib 't/lib';
 use Test::More;
 use Test::Handlebars;
 
-{ local $TODO = "unimplemented";
 render_ok(
     {
         path => [ { 'dude.tx' => '{{#this}}{{name}} ({{url}}) {{/this}}' } ],
@@ -20,7 +19,6 @@ render_ok(
     'Dudes: Yehuda (http://yehuda) Alan (http://alan) ',
     "passing a context to partials"
 );
-}
 
 render_ok(
     {
