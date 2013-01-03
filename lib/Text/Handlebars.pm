@@ -276,8 +276,9 @@ L<http://search.cpan.org/dist/Text-Handlebars>
   default_helpers
   default_functions
   options
-  render
   render_string
+  render
+  canonicalize_vars
 
 =cut
 

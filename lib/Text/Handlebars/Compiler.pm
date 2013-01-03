@@ -650,12 +650,30 @@ __PACKAGE__->meta->make_immutable;
 no Any::Moose;
 
 =for Pod::Coverage
-  call
-  check_lambda
   define_helper
-  iterator_index
+  find_file
+  is_unary
+  join
+  literalize
+  call
   make_ternary
   vars
+  iterator_index
+  check_lambda
+  is_array_ref
+  is_hash_ref
+  is_code_ref
+  make_array
+  make_hash
+  is_falsy
+  not
+  array_length
+  run_code
+  new_vars
+  save_lvar
+  merge_hash
+  merge_single_hash
+  literal
 
 =cut
 
