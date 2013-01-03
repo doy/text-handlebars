@@ -227,10 +227,6 @@ limitations in Text::Xslate.
 
 =item *
 
-Passing a new context to partials is not yet supported.
-
-=item *
-
 The C<data> parameter for C<@foo> variables when calling
 C<< $options->{fn}->() >> is not supported, because I don't understand its
 purpose. If someone wants this functionality, feel free to let me know, and
