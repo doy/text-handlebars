@@ -1,6 +1,8 @@
 Revision history for Text-Handlebars
 
 {{$NEXT}}
+
+0.02  2013-01-02
       - update to Text::Xslate 1.6, which allows us a lot more functionality
         to be implemented natively, which should speed some things up
       - fix using .. inside of helper blocks
