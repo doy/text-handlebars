@@ -1,5 +1,5 @@
 package Text::Xslate::Syntax::Handlebars;
-use Any::Moose;
+use Mouse;
 
 use Carp 'confess';
 use Text::Xslate::Util qw($DEBUG $NUMBER neat p);
@@ -596,7 +596,7 @@ sub _field_to_string {
 }
 
 __PACKAGE__->meta->make_immutable;
-no Any::Moose;
+no Mouse;
 
 =for Pod::Coverage
   call
