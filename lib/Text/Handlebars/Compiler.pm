@@ -1,5 +1,5 @@
 package Text::Handlebars::Compiler;
-use Any::Moose;
+use Mouse;
 
 extends 'Text::Xslate::Compiler';
 
@@ -647,7 +647,7 @@ sub merge_single_hash {
 sub literal { shift->parser->literal(@_) }
 
 __PACKAGE__->meta->make_immutable;
-no Any::Moose;
+no Mouse;
 
 =for Pod::Coverage
   define_helper

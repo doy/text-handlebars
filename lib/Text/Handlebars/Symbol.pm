@@ -1,5 +1,5 @@
 package Text::Handlebars::Symbol;
-use Any::Moose;
+use Mouse;
 
 extends 'Text::Xslate::Symbol';
 
@@ -14,6 +14,6 @@ has is_block_helper => (
 );
 
 __PACKAGE__->meta->make_immutable;
-no Any::Moose;
+no Mouse;
 
 1;
