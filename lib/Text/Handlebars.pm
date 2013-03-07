@@ -3,7 +3,7 @@ use strict;
 use warnings;
 # ABSTRACT: http://handlebarsjs.com/ for Text::Xslate
 
-use Text::Xslate 1.6000;
+use Text::Xslate 2.0000;
 use base 'Text::Xslate';
 
 use Scalar::Util 'weaken';
