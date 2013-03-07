@@ -1,6 +1,7 @@
 Revision history for Text-Handlebars
 
 {{$NEXT}}
+      - convert to Mouse, since Text::Xslate did
 
 0.02  2013-01-02
       - update to Text::Xslate 1.6, which allows us a lot more functionality
