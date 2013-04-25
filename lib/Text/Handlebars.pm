@@ -27,10 +27,10 @@ use Try::Tiny;
   my $vars = {
       author   => { firstName => 'Alan', lastName => 'Johnson' },
       body     => "I Love Handlebars",
-      comments => [
+      comments => [{
           author => { firstName => 'Yehuda', lastName => 'Katz' },
           body   => "Me too!",
-      ],
+      }],
   };
 
   say $handlebars->render_string(<<'TEMPLATE', $vars);
