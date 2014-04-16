@@ -1,6 +1,7 @@
 Revision history for Text-Handlebars
 
 {{$NEXT}}
+      - fix '..' in block helpers (reported by Jörg Prante, RT#94792)
 
 0.03  2013-03-07
       - convert to Mouse, since Text::Xslate did
