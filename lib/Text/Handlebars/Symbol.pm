@@ -16,4 +16,8 @@ has is_block_helper => (
 __PACKAGE__->meta->make_immutable;
 no Mouse;
 
+=for Pod::Coverage
+
+=cut
+
 1;
