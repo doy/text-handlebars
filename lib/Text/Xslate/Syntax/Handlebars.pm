@@ -259,6 +259,7 @@ sub init_symbols {
 
     $self->symbol('&')->set_nud($self->can('nud_mark_raw'));
     $self->symbol('..')->set_nud($self->can('nud_uplevel'));
+    $self->symbol('..')->lbp(10);
 
     $self->infix('=', 20, $self->can('led_equals'));
 }

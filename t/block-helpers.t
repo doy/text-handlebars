@@ -472,4 +472,60 @@ render_ok(
     "helper with inverse (inverse has variables)"
 );
 
+render_ok(
+    <<TEMPLATE,
+{{#each list}}
+<li>
+{{#each doc}}
+<div>{{this}}</div>
+<span>{{../../info}}</span>
+{{/each}}
+</li>
+{{/each}}
+TEMPLATE
+    {
+        info => "hello world",
+        list => [ { "doc" => [ "a", "b", "c" ] } ],
+    },
+    <<RENDERED,
+<li>
+<div>a</div>
+<span>hello world</span>
+<div>b</div>
+<span>hello world</span>
+<div>c</div>
+<span>hello world</span>
+</li>
+RENDERED
+    "object hierarchy access (RT#94792)"
+);
+
+render_ok(
+    <<TEMPLATE,
+{{#each list}}
+<li>
+{{#each doc}}
+<div>{{this}}</div>
+{{#each ../../info}}<span>{{this}}</span>{{/each}}
+{{/each}}
+</li>
+{{/each}}
+TEMPLATE
+    {
+        info => [ "hello", "world" ],
+        list => [ { "doc" => [ "a", "b", "c" ] } ],
+    },
+    <<RENDERED,
+<li>
+<div>a</div>
+<span>hello</span><span>world</span>
+<div>b</div>
+<span>hello</span><span>world</span>
+<div>c</div>
+<span>hello</span><span>world</span>
+</li>
+RENDERED
+    "object hierarchy access (RT#94792)"
+);
+
 done_testing;
