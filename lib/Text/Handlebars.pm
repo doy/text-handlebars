@@ -234,9 +234,8 @@ tell me why.
 
 =back
 
-Please report any bugs through RT: email
-C<bug-text-handlebars at rt.cpan.org>, or browse to
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Text-Handlebars>.
+Please report any bugs to GitHub Issues at
+L<https://github.com/doy/text-handlebars/issues>.
 
 =head1 SEE ALSO
 
@@ -254,21 +253,21 @@ You can also look for information at:
 
 =over 4
 
-=item * AnnoCPAN: Annotated CPAN documentation
+=item * MetaCPAN
 
-L<http://annocpan.org/dist/Text-Handlebars>
+L<https://metacpan.org/release/Text-Handlebars>
 
-=item * CPAN Ratings
+=item * Github
 
-L<http://cpanratings.perl.org/d/Text-Handlebars>
+L<https://github.com/doy/text-handlebars>
 
 =item * RT: CPAN's request tracker
 
 L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Text-Handlebars>
 
-=item * Search CPAN
+=item * CPAN Ratings
 
-L<http://search.cpan.org/dist/Text-Handlebars>
+L<http://cpanratings.perl.org/d/Text-Handlebars>
 
 =back
 
