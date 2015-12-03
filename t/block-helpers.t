@@ -528,4 +528,26 @@ RENDERED
     "object hierarchy access (RT#94792)"
 );
 
+render_ok(
+    <<TEMPLATE,
+{{{outer}}}
+{{#each elements}}
+{{{inner}}}
+{{/each}}
+TEMPLATE
+    {
+        outer => '<em>example</em>',
+        elements => [
+            { inner => '<em>text</em>' },
+            { inner => '<h1>text</h1>' },
+        ]
+    },
+    <<RENDERED,
+<em>example</em>
+<em>text</em>
+<h1>text</h1>
+RENDERED
+    "raw variable access inside block helpers (#6)"
+);
+
 done_testing;
