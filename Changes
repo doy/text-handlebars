@@ -1,6 +1,8 @@
 Revision history for Text-Handlebars
 
 {{$NEXT}}
+
+0.05  2015-12-03
       - fix raw variable references inside block helpers (reported by
         belousandrey, #6)
 
