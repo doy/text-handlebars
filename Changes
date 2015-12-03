@@ -1,6 +1,8 @@
 Revision history for Text-Handlebars
 
 {{$NEXT}}
+      - fix '{{{' variable references inside block helpers (reported by
+        belousandrey, #6)
 
 0.04  2014-04-16
       - fix '..' in block helpers (reported by Jörg Prante, RT#94792)

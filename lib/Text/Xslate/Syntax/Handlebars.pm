@@ -105,7 +105,12 @@ sub split_tags {
                     }
                 }
                 if (@raw_text) {
-                    $raw_text[-1] .= $tag_start . $code . $tag_end;
+                    if ($close_tag eq '}}}') {
+                        $raw_text[-1] .= '{{{' . $code . '}}}';
+                    }
+                    else {
+                        $raw_text[-1] .= $tag_start . $code . $tag_end;
+                    }
                 }
                 if ($code =~ m{^[#^]} || $code eq 'else') {
                     push @raw_text, '';
