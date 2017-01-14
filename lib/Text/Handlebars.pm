@@ -102,8 +102,12 @@ sub default_helpers {
             return $options->{fn}->($new_context);
         },
         each => sub {
-            my ($context, $list, $options) = @_;
-            return join '', map { $options->{fn}->($_) } @$list;
+            my ($context, $ref, $options) = @_;
+            if (ref $ref eq 'HASH') {
+                return join '', map { $options->{fn}->( {'@key' => $_, '.' => $ref->{$_}} ) } sort keys %$ref;
+            } else {
+                return join '', map { $options->{fn}->($_) } @$ref;
+            }
         },
         if => sub {
             my ($context, $conditional, $options) = @_;
