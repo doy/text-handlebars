@@ -106,7 +106,7 @@ sub default_helpers {
             if (ref $ref eq 'HASH') {
                 return join '', map { $options->{fn}->({'.' => $ref->{$_}, '@key' => $_}) } keys %$ref;
             } else {
-                return join '', map { $options->{fn}->({'.' => $ref->[$_], '@index' => $_, '@first' => $_ == 0 ? true : false, '@last' => $_ == $#{$ref} ? true : false}) } 0 .. $#{$ref};
+                return join '', map { $options->{fn}->({'.' => $ref->[$_], '@index' => $_, '@first' => $_ == 0 ? 1 : 0, '@last' => $_ == $#{$ref} ? 1 : 0}) } 0 .. $#{$ref};
             }
         },
         if => sub {
