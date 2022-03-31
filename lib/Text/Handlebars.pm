@@ -102,14 +102,28 @@ sub default_helpers {
             return $options->{fn}->($new_context);
         },
         each => sub {
-            my ($context, $list, $options) = @_;
-            return join '', map { $options->{fn}->($_) } @$list;
+            my ($context, $ref, $options) = @_;
+            if (ref $ref eq 'HASH') {
+                return join '', map { $options->{fn}->({'.' => $ref->{$_}, '@key' => $_}) } keys %$ref;
+            } else {
+                return join '', map { $options->{fn}->({'.' => $ref->[$_], '@index' => $_, '@first' => $_ == 0 ? 1 : 0, '@last' => $_ == $#{$ref} ? 1 : 0}) } 0 .. $#{$ref};
+            }
         },
         if => sub {
-            my ($context, $conditional, $options) = @_;
-            return $conditional
-                ? $options->{fn}->($context)
-                : $options->{inverse}->($context);
+            my $options = pop @_;
+            my ($context, @conditional) = @_;
+
+            my $sprintf_str = shift @conditional;
+            my $conditional_str = sprintf($sprintf_str, @conditional);
+            my $result;
+            if (eval $conditional_str) {
+              $result = 1;
+            } else {
+              $result = 0;
+            }
+            return $result
+              ? $options->{fn}->($context)
+              : $options->{inverse}->($context);
         },
         unless => sub {
             my ($context, $conditional, $options) = @_;
